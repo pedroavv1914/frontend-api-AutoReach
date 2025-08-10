@@ -4,13 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AuthGuard } from "@/components/auth-guard";
+ 
 
 export default function DashboardPage() {
   const me = useQuery({ queryKey: ["me"], queryFn: async () => (await api.get("/users/me")).data });
 
   return (
-    <AuthGuard>
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
@@ -70,6 +69,5 @@ export default function DashboardPage() {
         </TabsContent>
       </Tabs>
     </div>
-    </AuthGuard>
   );
 }
