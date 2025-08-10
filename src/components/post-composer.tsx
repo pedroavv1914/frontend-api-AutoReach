@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,8 +25,9 @@ export type ComposerForm = z.infer<typeof schema>;
 
 export function PostComposer() {
   const [submitting, setSubmitting] = useState(false);
+  const resolver = zodResolver(schema) as unknown as Resolver<ComposerForm>;
   const form = useForm<ComposerForm>({
-    resolver: zodResolver(schema),
+    resolver,
     defaultValues: {
       text: "",
       networks: [],
@@ -38,7 +39,7 @@ export function PostComposer() {
   const text = form.watch("text") || "";
   const networks = form.watch("networks") || [];
 
-  async function onSubmit(values: ComposerForm) {
+  const onSubmit: SubmitHandler<ComposerForm> = async (values) => {
     setSubmitting(true);
     try {
       // Placeholder: depois integraremos com POST /posts
