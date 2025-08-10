@@ -25,8 +25,20 @@ export function AppHeader() {
     { href: "/diagnostics/twitter", label: "Diagnostics" },
   ];
 
+  const crumbs = (() => {
+    const segs = (pathname || "/").split("/").filter(Boolean);
+    const nice = (s: string) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
+    const paths: { href: string; label: string }[] = [];
+    let acc = "";
+    for (const s of segs) {
+      acc += "/" + s;
+      paths.push({ href: acc, label: nice(s) });
+    }
+    return paths;
+  })();
+
   return (
-    <header className={`sticky top-0 z-40 w-full border-b bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/50 transition-shadow ${scrolled ? "shadow-sm" : ""}`}>
+    <header className={`sticky top-0 z-40 w-full border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-shadow ${scrolled ? "shadow-sm" : ""}`}>
       <div className="w-full px-6 py-3 flex items-center gap-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Abrir menu">
@@ -36,16 +48,16 @@ export function AppHeader() {
             <span className="bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent">AutoReach</span>
           </Link>
         </div>
-      <div className="h-[2px] w-full bg-gradient-to-r from-blue-600/60 via-violet-600/60 to-fuchsia-600/60" />
 
-        <nav className="hidden md:flex items-center gap-1 text-sm">
+        {/* Primary nav as pill group */}
+        <nav className="hidden md:flex items-center gap-1 text-sm rounded-full border bg-background/60 p-1 shadow-sm">
           {nav.map((item) => {
             const active = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative px-3 py-1.5 rounded-md transition-colors hover:bg-accent/40 ${active ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                className={`relative px-3 py-1.5 rounded-full transition-colors ${active ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <span className="inline-flex items-center gap-2">
                   {item.label === "Dashboard" && <Gauge className="h-3.5 w-3.5" />}
@@ -55,7 +67,9 @@ export function AppHeader() {
                   {item.label === "Diagnostics" && <LayoutGrid className="h-3.5 w-3.5" />}
                   <span>{item.label}</span>
                 </span>
-                <span className={`pointer-events-none absolute left-3 right-3 -bottom-0.5 h-[2px] rounded-full transition-opacity ${active ? "opacity-100 bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600" : "opacity-0"}`} />
+                {active && (
+                  <span className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-blue-600/10 via-violet-600/10 to-fuchsia-600/10 ring-1 ring-border" />
+                )}
               </Link>
             );
           })}
@@ -79,6 +93,28 @@ export function AppHeader() {
           <Button asChild>
             <Link href="/posts/new"><PlusCircle className="h-4 w-4 mr-2" />Novo Post</Link>
           </Button>
+        </div>
+      </div>
+
+      {/* Sub-header: breadcrumbs and quick actions (desktop) */}
+      <div className="hidden md:block border-t bg-background/60">
+        <div className="w-full px-6 py-2 flex items-center justify-between">
+          <div className="text-xs text-muted-foreground flex items-center gap-2">
+            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+            {crumbs.length > 0 && <span>/</span>}
+            {crumbs.map((c, i) => (
+              <span key={c.href} className="flex items-center gap-2">
+                <Link href={c.href} className={`hover:text-foreground transition-colors ${i === crumbs.length - 1 ? "text-foreground" : ""}`}>{c.label}</Link>
+                {i < crumbs.length - 1 && <span>/</span>}
+              </span>
+            ))}
+          </div>
+          {pathname !== "/dashboard" && (
+            <div className="flex items-center gap-2">
+              <Button asChild size="sm" variant="outline"><Link href="/accounts">Gerenciar contas</Link></Button>
+              <Button asChild size="sm"><Link href="/posts/new">Novo Post</Link></Button>
+            </div>
+          )}
         </div>
       </div>
 
