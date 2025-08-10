@@ -1,6 +1,4 @@
 "use client";
-
-import { AuthGuard } from "@/components/auth-guard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -15,7 +13,6 @@ export default function PostsPage() {
   ];
 
   return (
-    <AuthGuard>
       <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Posts</h1>
@@ -49,6 +46,5 @@ export default function PostsPage() {
           <TabsContent value="error">Em breve: filtro por erros</TabsContent>
         </Tabs>
       </div>
-    </AuthGuard>
   );
 }
