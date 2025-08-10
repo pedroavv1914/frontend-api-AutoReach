@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AuthGuard } from "@/components/auth-guard";
 
 export default function TwitterDiagnosticsPage() {
   const [text, setText] = useState("debug signature");
@@ -26,6 +27,7 @@ export default function TwitterDiagnosticsPage() {
   });
 
   return (
+    <AuthGuard>
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-semibold">Diagnóstico Twitter</h1>
 
@@ -63,5 +65,6 @@ export default function TwitterDiagnosticsPage() {
         </Card>
       </div>
     </div>
+    </AuthGuard>
   );
 }
