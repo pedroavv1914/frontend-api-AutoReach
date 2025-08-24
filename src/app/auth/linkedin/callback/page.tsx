@@ -35,8 +35,8 @@ export default function LinkedInCallbackPage() {
 
   const handleLinkedInAuth = async (code: string, state: string | null) => {
     try {
-      // Simulação da integração - substitua pela chamada real ao backend
-      const response = await fetch('/api/auth/linkedin', {
+      // Call real backend OAuth endpoint
+      const response = await fetch('http://localhost:3000/api/auth/linkedin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
