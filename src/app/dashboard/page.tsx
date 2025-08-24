@@ -17,14 +17,14 @@ const chartData = [
 ];
 
 const upcoming = [
-  { id: "1", text: "Lançamento do blog", when: "Hoje • 17:00", networks: ["twitter", "linkedin"] },
+  { id: "1", text: "Lançamento do blog", when: "Hoje • 17:00", networks: ["linkedin"] },
   { id: "2", text: "Vídeo: novidades do produto", when: "Amanhã • 09:00", networks: ["instagram"] },
+  { id: "3", text: "Post sobre funcionalidades", when: "Segunda • 14:00", networks: ["instagram", "linkedin"] },
 ];
 
 const accounts = [
-  { id: "tw", label: "@autorreach", provider: "Twitter/X", status: "Conectada" },
-  { id: "ln", label: "AutoReach", provider: "LinkedIn", status: "Conectada" },
-  { id: "ig", label: "@autorreach_ig", provider: "Instagram", status: "Conectar" },
+  { id: "ln", label: "Aithos Reach", provider: "LinkedIn", status: "Conectada" },
+  { id: "ig", label: "@aithosreach", provider: "Instagram", status: "Conectar" },
 ];
 
 function useCountUp(to: number, durationMs = 900) {
