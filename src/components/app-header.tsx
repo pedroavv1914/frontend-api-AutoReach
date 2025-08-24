@@ -22,7 +22,7 @@ export function AppHeader() {
     { href: "/posts", label: "Posts" },
     { href: "/posts/new", label: "Novo Post" },
     { href: "/accounts", label: "Contas" },
-    { href: "/diagnostics/twitter", label: "Diagnostics" },
+    { href: "/analytics", label: "Analytics" },
   ];
 
   const crumbs = (() => {
@@ -45,7 +45,7 @@ export function AppHeader() {
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
           <Link href="/" className="font-semibold tracking-tight">
-            <span className="bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent">AutoReach</span>
+            <span className="bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent">Aithos Reach</span>
           </Link>
         </div>
 
@@ -64,7 +64,7 @@ export function AppHeader() {
                   {item.label === "Posts" && <FileText className="h-3.5 w-3.5" />}
                   {item.label === "Novo Post" && <PlusCircle className="h-3.5 w-3.5" />}
                   {item.label === "Contas" && <Users className="h-3.5 w-3.5" />}
-                  {item.label === "Diagnostics" && <LayoutGrid className="h-3.5 w-3.5" />}
+                  {item.label === "Analytics" && <LayoutGrid className="h-3.5 w-3.5" />}
                   <span>{item.label}</span>
                 </span>
                 {active && (
@@ -141,7 +141,7 @@ export function AppHeader() {
                     {item.label === "Posts" && <FileText className="h-3.5 w-3.5" />}
                     {item.label === "Novo Post" && <PlusCircle className="h-3.5 w-3.5" />}
                     {item.label === "Contas" && <Users className="h-3.5 w-3.5" />}
-                    {item.label === "Diagnostics" && <LayoutGrid className="h-3.5 w-3.5" />}
+                    {item.label === "Analytics" && <LayoutGrid className="h-3.5 w-3.5" />}
                     <span>{item.label}</span>
                   </Link>
                 );
