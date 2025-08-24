@@ -35,8 +35,8 @@ export default function InstagramCallbackPage() {
 
   const handleInstagramAuth = async (code: string, state: string | null) => {
     try {
-      // Simulação da integração - substitua pela chamada real ao backend
-      const response = await fetch('/api/auth/instagram', {
+      // Call real backend OAuth endpoint
+      const response = await fetch('http://localhost:3000/api/auth/instagram', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
