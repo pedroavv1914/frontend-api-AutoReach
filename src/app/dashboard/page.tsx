@@ -2,9 +2,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, CheckCircle2, Clock, TrendingUp, AlertTriangle, PlusCircle, Users, FileText } from "lucide-react";
+import { Calendar, CheckCircle2, Clock, TrendingUp, AlertTriangle, PlusCircle, Users, FileText, RefreshCw } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { useEffect, useState } from "react";
+import { PostComposer } from "@/components/post-composer";
+import { postsApi, PostFilters } from "@/lib/posts-api";
+import { Post } from "@/lib/types";
+import { toast } from "sonner";
 
 const chartData = [
   { name: "Dom", published: 6, engagements: 120 },
@@ -16,60 +20,139 @@ const chartData = [
   { name: "Sáb", published: 9, engagements: 200 },
 ];
 
-const upcoming = [
-  { id: "1", text: "Lançamento do blog", when: "Hoje • 17:00", networks: ["linkedin"] },
-  { id: "2", text: "Vídeo: novidades do produto", when: "Amanhã • 09:00", networks: ["instagram"] },
-  { id: "3", text: "Post sobre funcionalidades", when: "Segunda • 14:00", networks: ["instagram", "linkedin"] },
-];
-
-const accounts = [
-  { id: "ln", label: "Aithos Reach", provider: "LinkedIn", status: "Conectada" },
-  { id: "ig", label: "@aithosreach", provider: "Instagram", status: "Conectar" },
-];
-
-function useCountUp(to: number, durationMs = 900) {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    let raf = 0; const start = performance.now();
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / durationMs);
-      setValue(Math.floor(to * (0.5 - Math.cos(Math.PI * t) / 2))); // easeInOut
-      if (t < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [to, durationMs]);
-  return value;
-}
-
-function Sparkline({ dataKey, color }: { dataKey: string; color: string }) {
-  return (
-    <div className="h-10 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-          <defs>
-            <linearGradient id={`fill-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={color} stopOpacity={0.35}/>
-              <stop offset="95%" stopColor={color} stopOpacity={0}/>
-            </linearGradient>
-          </defs>
-          <Area type="monotone" dataKey={dataKey} stroke={color} fill={`url(#fill-${dataKey})`} strokeWidth={2} />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
 export default function DashboardPage() {
-  const pending = useCountUp(8);
-  const published = useCountUp(78);
-  const engagements = useCountUp(1600);
-  const errors = useCountUp(3);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showComposer, setShowComposer] = useState(false);
+  const [filters, setFilters] = useState<PostFilters>({ page: 1, pageSize: 10 });
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    published: 0,
+    errors: 0
+  });
+
+  // Carregar posts
+  useEffect(() => {
+    loadPosts();
+  }, [filters]);
+
+  const loadPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await postsApi.list(filters);
+      setPosts(response.items);
+
+      // Calcular estatísticas
+      const total = response.total;
+      const pending = response.items.filter(p => p.status === 'pending').length;
+      const published = response.items.filter(p => p.status === 'published').length;
+      const errors = response.items.filter(p => p.status === 'error').length;
+
+      setStats({ total, pending, published, errors });
+    } catch (error: any) {
+      toast.error('Erro ao carregar posts');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePostAction = async (postId: string, action: 'cancel' | 'retry' | 'delete') => {
+    try {
+      switch (action) {
+        case 'cancel':
+          await postsApi.cancel(postId);
+          toast.success('Post cancelado');
+          break;
+        case 'retry':
+          await postsApi.retry(postId);
+          toast.success('Post reenviado');
+          break;
+        case 'delete':
+          await postsApi.delete(postId);
+          toast.success('Post excluído');
+          break;
+      }
+      loadPosts(); // Recarregar lista
+    } catch (error: any) {
+      toast.error(`Erro ao ${action === 'delete' ? 'excluir' : action === 'cancel' ? 'cancelar' : 'reenviar'} post`);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'published': return 'bg-green-100 text-green-700';
+      case 'pending': return 'bg-blue-100 text-blue-700';
+      case 'error': return 'bg-red-100 text-red-700';
+      case 'canceled': return 'bg-gray-100 text-gray-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'published': return 'Publicado';
+      case 'pending': return 'Agendado';
+      case 'error': return 'Erro';
+      case 'canceled': return 'Cancelado';
+      default: return status;
+    }
+  };
+
+  const useCountUp = (to: number, durationMs = 900) => {
+    const [value, setValue] = useState(0);
+    useEffect(() => {
+      let raf = 0; const start = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - start) / durationMs);
+        setValue(Math.floor(to * (0.5 - Math.cos(Math.PI * t) / 2))); // easeInOut
+        if (t < 1) raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+      return () => cancelAnimationFrame(raf);
+    }, [to, durationMs]);
+    return value;
+  };
+
+  const Sparkline = ({ dataKey, color }: { dataKey: string; color: string }) => {
+    return (
+      <div className="h-10 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+            <defs>
+              <linearGradient id={`fill-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={color} stopOpacity={0.35} />
+                <stop offset="95%" stopColor={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <Area type="monotone" dataKey={dataKey} stroke={color} fill={`url(#fill-${dataKey})`} strokeWidth={1.5} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  };
+
+  const pendingCount = useCountUp(stats.pending);
+  const publishedCount = useCountUp(stats.published);
+  const engagementsCount = useCountUp(1600);
+  const errorsCount = useCountUp(stats.errors);
   const [metric, setMetric] = useState<'engagements' | 'published'>('engagements');
-  const metricCfg: Record<typeof metric, { label: string; color: string } > = {
+  const metricCfg: Record<typeof metric, { label: string; color: string }> = {
     engagements: { label: 'Engajamentos', color: '#8b5cf6' }, // violet-500
     published:   { label: 'Publicados',   color: '#10b981' }, // emerald-500
-  } as any;
+  };
   return (
     <div className="p-0">
       {/* Hero */}
@@ -107,7 +190,7 @@ export default function DashboardPage() {
               <Clock className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{pending}</div>
+              <div className="text-2xl font-bold">{pendingCount}</div>
               <div className="text-xs text-muted-foreground flex items-center gap-2">
                 <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-100/60 px-1.5 py-0.5 rounded">↗ 5%</span>
                 <span>na fila para publicar</span>
@@ -122,7 +205,7 @@ export default function DashboardPage() {
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{published}</div>
+              <div className="text-2xl font-bold">{publishedCount}</div>
               <div className="text-xs text-emerald-600 inline-flex items-center gap-1 bg-emerald-100/60 px-1.5 py-0.5 rounded">▲ 12% vs semana anterior</div>
               <div className="mt-3"><Sparkline dataKey="published" color="#10b981" /></div>
             </CardContent>
@@ -134,7 +217,7 @@ export default function DashboardPage() {
               <TrendingUp className="h-4 w-4 text-violet-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{engagements.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{engagementsCount.toLocaleString()}</div>
               <div className="text-xs text-violet-600 inline-flex items-center gap-1 bg-violet-100/60 px-1.5 py-0.5 rounded">▲ 7% esta semana</div>
               <div className="mt-3"><Sparkline dataKey="engagements" color="#8b5cf6" /></div>
             </CardContent>
@@ -146,7 +229,7 @@ export default function DashboardPage() {
               <AlertTriangle className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{errors}</div>
+              <div className="text-2xl font-bold">{errorsCount}</div>
               <div className="text-xs text-amber-600 inline-flex items-center gap-1 bg-amber-100/60 px-1.5 py-0.5 rounded">▼ 2% vs 7d</div>
               <div className="mt-3"><Sparkline dataKey="published" color="#f59e0b" /></div>
             </CardContent>
@@ -172,8 +255,8 @@ export default function DashboardPage() {
                   <AreaChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
                     <defs>
                       <linearGradient id="fillMetric" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={metricCfg[metric].color} stopOpacity={0.35}/>
-                        <stop offset="95%" stopColor={metricCfg[metric].color} stopOpacity={0}/>
+                        <stop offset="5%" stopColor={metricCfg[metric].color} stopOpacity={0.35} />
+                        <stop offset="95%" stopColor={metricCfg[metric].color} stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" className="opacity-40" />
@@ -194,25 +277,31 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-3 max-h-56 overflow-auto pr-1">
-              {upcoming.map((u) => (
-                <div key={u.id} className="flex items-start justify-between border rounded-md p-3 transition hover:bg-accent/30">
-                  <div className="pr-2">
-                    <div className="text-sm font-medium flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-violet-500" />
-                      <span>{u.text}</span>
+                {posts.filter(p => p.status === 'pending').slice(0, 3).map((post) => (
+                  <div key={post.id} className="flex items-start justify-between border rounded-md p-3 transition hover:bg-accent/30">
+                    <div className="pr-2">
+                      <div className="text-sm font-medium flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-violet-500" />
+                        <span>{post.content.substring(0, 40)}...</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                        <span>{formatDate(post.scheduledAt || post.createdAt)}</span>
+                        <span className="inline-flex items-center gap-1">
+                          {post.networks.map((network: string) => (
+                            <span key={network} className="px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground text-[10px] uppercase tracking-wide">{network}</span>
+                          ))}
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
-                      <span>{u.when}</span>
-                      <span className="inline-flex items-center gap-1">
-                        {u.networks.map(n => (
-                          <span key={n} className="px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground text-[10px] uppercase tracking-wide">{n}</span>
-                        ))}
-                      </span>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handlePostAction(post.id, 'cancel')}
+                    >
+                      Cancelar
+                    </Button>
                   </div>
-                  <Button asChild size="sm" variant="outline"><a href="/posts">Ver</a></Button>
-                </div>
-              ))}
+                ))}
               </div>
               <div className="pt-1"><Button asChild variant="ghost" className="px-0 h-auto"><a href="/posts">Ver todos</a></Button></div>
             </CardContent>
@@ -226,7 +315,10 @@ export default function DashboardPage() {
               <CardTitle>Contas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {accounts.map((a) => (
+              {[
+                { id: "ln", label: "Aithos Reach", provider: "LinkedIn", status: "Conectada" },
+                { id: "ig", label: "@aithosreach", provider: "Instagram", status: "Conectar" },
+              ].map((a) => (
                 <div key={a.id} className="flex items-center justify-between border rounded-md p-3">
                   <div>
                     <div className="text-sm font-medium">{a.provider}</div>
@@ -264,26 +356,110 @@ export default function DashboardPage() {
         {/* Insights */}
         <div className="grid gap-6 grid-cols-1">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Insights</CardTitle>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+              <CardTitle>Posts Recentes</CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={loadPosts}
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setShowComposer(!showComposer)}
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Novo Post
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-md border p-3">
-                <div className="text-xs text-muted-foreground">Melhor horário</div>
-                <div className="text-sm font-medium">09:00–11:00 (BR)</div>
-              </div>
-              <div className="rounded-md border p-3">
-                <div className="text-xs text-muted-foreground">Hashtags de maior alcance</div>
-                <div className="text-sm font-medium">#productivity #devtools #growth</div>
-              </div>
-              <div className="rounded-md border p-3">
-                <div className="text-xs text-muted-foreground">Rede com maior engajamento</div>
-                <div className="text-sm font-medium">Twitter/X</div>
-              </div>
+            <CardContent>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
+              ) : posts.length > 0 ? (
+                <div className="space-y-3 max-h-96 overflow-auto">
+                  {posts.slice(0, 5).map((post) => (
+                    <div key={post.id} className="flex items-start justify-between border rounded-md p-3 transition hover:bg-accent/30">
+                      <div className="pr-2 flex-1">
+                        <div className="text-sm font-medium flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-violet-500" />
+                          <span className="truncate">{post.content.substring(0, 60)}...</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap mt-1">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(post.status)}`}>
+                            {getStatusText(post.status)}
+                          </span>
+                          <span>{formatDate(post.scheduledAt || post.createdAt)}</span>
+                          <span className="inline-flex items-center gap-1">
+                            {post.networks.map((network) => (
+                              <span key={network} className="px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground text-[10px] uppercase tracking-wide">
+                                {network}
+                              </span>
+                            ))}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        {post.status === 'pending' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handlePostAction(post.id, 'cancel')}
+                          >
+                            Cancelar
+                          </Button>
+                        )}
+                        {post.status === 'error' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handlePostAction(post.id, 'retry')}
+                          >
+                            Tentar novamente
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhum post encontrado</p>
+                  <p className="text-sm">Crie seu primeiro post clicando em "Novo Post"</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Post Composer Modal */}
+      {showComposer && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-auto">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Criar Novo Post</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowComposer(false)}
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="p-4">
+              <PostComposer />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
