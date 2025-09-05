@@ -41,18 +41,22 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const response = await postsApi.list(filters);
-      setPosts(response.items);
-
+      const items = response.items || [];
+      setPosts(items);
+      
       // Calcular estatísticas
-      const total = response.total;
-      const pending = response.items.filter(p => p.status === 'pending').length;
-      const published = response.items.filter(p => p.status === 'published').length;
-      const errors = response.items.filter(p => p.status === 'error').length;
-
+      const total = response.total || 0;
+      const pending = items.filter(p => p.status === 'pending').length;
+      const published = items.filter(p => p.status === 'published').length;
+      const errors = items.filter(p => p.status === 'error').length;
+      
       setStats({ total, pending, published, errors });
     } catch (error: any) {
       toast.error('Erro ao carregar posts');
       console.error(error);
+      // Definir valores padrão em caso de erro
+      setPosts([]);
+      setStats({ total: 0, pending: 0, published: 0, errors: 0 });
     } finally {
       setLoading(false);
     }
@@ -114,7 +118,13 @@ export default function DashboardPage() {
   const useCountUp = (to: number, durationMs = 900) => {
     const [value, setValue] = useState(0);
     useEffect(() => {
-      let raf = 0; const start = performance.now();
+      if (to === 0) {
+        setValue(0);
+        return;
+      }
+      
+      let raf = 0; 
+      const start = performance.now();
       const step = (now: number) => {
         const t = Math.min(1, (now - start) / durationMs);
         setValue(Math.floor(to * (0.5 - Math.cos(Math.PI * t) / 2))); // easeInOut
@@ -127,17 +137,29 @@ export default function DashboardPage() {
   };
 
   const Sparkline = ({ dataKey, color }: { dataKey: string; color: string }) => {
+    const [isAnimating, setIsAnimating] = useState(false);
+    
     return (
       <div className="h-10 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+          <AreaChart 
+            data={chartData} 
+            margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+          >
             <defs>
               <linearGradient id={`fill-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={color} stopOpacity={0.35} />
                 <stop offset="95%" stopColor={color} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <Area type="monotone" dataKey={dataKey} stroke={color} fill={`url(#fill-${dataKey})`} strokeWidth={1.5} />
+            <Area 
+              type="monotone" 
+              dataKey={dataKey} 
+              stroke={color} 
+              fill={`url(#fill-${dataKey})`} 
+              strokeWidth={1.5}
+              isAnimationActive={false}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -277,7 +299,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-3 max-h-56 overflow-auto pr-1">
-                {posts.filter(p => p.status === 'pending').slice(0, 3).map((post) => (
+                {posts && posts.length > 0 ? posts.filter(p => p.status === 'pending').slice(0, 3).map((post) => (
                   <div key={post.id} className="flex items-start justify-between border rounded-md p-3 transition hover:bg-accent/30">
                     <div className="pr-2">
                       <div className="text-sm font-medium flex items-center gap-2">
@@ -301,7 +323,11 @@ export default function DashboardPage() {
                       Cancelar
                     </Button>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <p className="text-sm">Nenhum post agendado</p>
+                  </div>
+                )}
               </div>
               <div className="pt-1"><Button asChild variant="ghost" className="px-0 h-auto"><a href="/posts">Ver todos</a></Button></div>
             </CardContent>
