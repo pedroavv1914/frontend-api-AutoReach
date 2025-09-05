@@ -13,6 +13,7 @@ import { NetworkSelect, type Network } from "@/components/ui/network-select";
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { SchedulePicker } from "@/components/ui/schedule-picker";
 import { Twitter, Linkedin, Instagram } from "lucide-react";
+import { postsApi } from "@/lib/posts-api";
 
 const schema = z.object({
   text: z.string().min(1, "Digite o texto do post").max(1000, "Máx 1000 caracteres"),
@@ -43,12 +44,25 @@ export function PostComposer() {
   const onSubmit: SubmitHandler<ComposerForm> = async (values) => {
     setSubmitting(true);
     try {
-      // Placeholder: depois integraremos com POST /posts
-      console.log("compose:", values);
-      toast.success("Post preparado (simulação)");
+      const postData = {
+        content: values.text,
+        networks: values.networks,
+        mediaUrls: values.mediaUrls,
+        scheduledAt: values.scheduledAt?.toISOString(),
+      };
+
+      await postsApi.create(postData);
+      
+      if (values.scheduledAt) {
+        toast.success("Post agendado com sucesso!");
+      } else {
+        toast.success("Post publicado com sucesso!");
+      }
+      
       form.reset();
     } catch (e: any) {
-      toast.error(e?.message || "Erro ao preparar post");
+      const errorMessage = e?.response?.data?.message || e?.message || "Erro ao criar post";
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
