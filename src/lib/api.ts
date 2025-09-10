@@ -1,11 +1,23 @@
 import axios from "axios";
+import { config } from "./env";
+
+// Estender a interface do Axios para incluir propriedade tenant
+declare module 'axios' {
+  interface InternalAxiosRequestConfig {
+    tenant?: {
+      host: string;
+      domain: string;
+    };
+  }
+}
 
 // Base URL para o backend multi-tenant
-const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
-
 export const api = axios.create({ 
-  baseURL,
-  timeout: 10000,
+  baseURL: config.api.baseUrl,
+  timeout: config.api.timeout,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // Interceptor para adicionar headers necessários
@@ -19,10 +31,9 @@ api.interceptors.request.use((config) => {
     }
 
     // Para desenvolvimento local: adiciona header de tenant se não estiver usando subdomínios
-    const tenantHost = process.env.NEXT_PUBLIC_TENANT_HOST || "dev.aithosreach.com";
-    if (tenantHost && !window.location.hostname.includes("aithosreach.com")) {
+    if (config.tenant?.host && !window.location.hostname.includes(config.tenant.domain)) {
       config.headers = config.headers || {};
-      config.headers["x-tenant-host"] = tenantHost;
+      config.headers["x-tenant-host"] = config.tenant.host;
     }
   }
   return config;
@@ -54,18 +65,18 @@ api.interceptors.response.use(
 
 // Helpers para requisições tipadas
 export const apiClient = {
-  get: <T = any>(url: string, config?: any) => 
+  get: <T = unknown>(url: string, config?: Record<string, unknown>) => 
     api.get<T>(url, config).then(res => res.data),
-    
-  post: <T = any>(url: string, data?: any, config?: any) => 
+  
+  post: <T = unknown>(url: string, data?: unknown, config?: Record<string, unknown>) => 
     api.post<T>(url, data, config).then(res => res.data),
-    
-  put: <T = any>(url: string, data?: any, config?: any) => 
+  
+  put: <T = unknown>(url: string, data?: unknown, config?: Record<string, unknown>) => 
     api.put<T>(url, data, config).then(res => res.data),
-    
-  delete: <T = any>(url: string, config?: any) => 
+
+  delete: <T = unknown>(url: string, config?: Record<string, unknown>) => 
     api.delete<T>(url, config).then(res => res.data),
-    
-  patch: <T = any>(url: string, data?: any, config?: any) => 
+
+  patch: <T = unknown>(url: string, data?: unknown, config?: Record<string, unknown>) => 
     api.patch<T>(url, data, config).then(res => res.data),
 };
