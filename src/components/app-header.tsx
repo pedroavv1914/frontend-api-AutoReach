@@ -1,155 +1,328 @@
 "use client";
 
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { 
+  Menu, 
+  X, 
+  Bell, 
+  User, 
+  Settings, 
+  LogOut, 
+  Home,
+  FileText,
+  BarChart3,
+  Users,
+  Search,
+  Plus,
+  ChevronRight,
+  Moon,
+  Sun
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Users, Bell, Menu, X, LayoutGrid, FileText, Gauge } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
-export function AppHeader() {
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: React.ReactNode;
+  badge?: number;
+}
+
+const navigation: NavigationItem[] = [
+  { name: "Dashboard", href: "/", icon: <Home className="h-4 w-4" /> },
+  { name: "Posts", href: "/posts", icon: <FileText className="h-4 w-4" /> },
+  { name: "Analytics", href: "/analytics", icon: <BarChart3 className="h-4 w-4" /> },
+  { name: "Equipe", href: "/team", icon: <Users className="h-4 w-4" /> },
+];
+
+interface AppHeaderProps {
+  user?: {
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  notifications?: number;
+  onCreatePost?: () => void;
+}
+
+export function AppHeader({ user, notifications = 0, onCreatePost }: AppHeaderProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 4);
-    onScroll();
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  const nav = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/posts", label: "Posts" },
-    { href: "/posts/new", label: "Novo Post" },
-    { href: "/accounts", label: "Contas" },
-    { href: "/analytics", label: "Analytics" },
-  ];
 
-  const crumbs = (() => {
-    const segs = (pathname || "/").split("/").filter(Boolean);
-    const nice = (s: string) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
-    const paths: { href: string; label: string }[] = [];
-    let acc = "";
-    for (const s of segs) {
-      acc += "/" + s;
-      paths.push({ href: acc, label: nice(s) });
-    }
-    return paths;
-  })();
+  // Detectar tema do sistema
+  useEffect(() => {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setIsDarkMode(isDark);
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.classList.toggle('dark');
+  };
+
+  const getBreadcrumbs = () => {
+    const segments = pathname.split('/').filter(Boolean);
+    const breadcrumbs = [{ name: 'Dashboard', href: '/' }];
+    
+    let currentPath = '';
+    segments.forEach((segment) => {
+      currentPath += `/${segment}`;
+      const navItem = navigation.find(item => item.href === currentPath);
+      breadcrumbs.push({
+        name: navItem?.name || segment.charAt(0).toUpperCase() + segment.slice(1),
+        href: currentPath
+      });
+    });
+    
+    return breadcrumbs;
+  };
+
+  const breadcrumbs = getBreadcrumbs();
+  const currentPage = breadcrumbs[breadcrumbs.length - 1];
 
   return (
-    <header className={`sticky top-0 z-40 w-full border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-shadow ${scrolled ? "shadow-sm" : ""}`}>
-      <div className="w-full px-6 py-3 flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Abrir menu">
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-          <Link href="/" className="font-semibold tracking-tight">
-            <span className="bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent">Aithos Reach</span>
-          </Link>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* Main Header */}
+      <div className="container flex h-16 items-center gap-4">
+        {/* Logo and Mobile Menu */}
+        <div className="flex items-center gap-4">
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Abrir menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80">
+              <SheetHeader>
+                <SheetTitle>AithosReach</SheetTitle>
+              </SheetHeader>
+              <nav className="mt-6 space-y-2">
+                {navigation.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted"
+                      )}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.icon}
+                      {item.name}
+                      {item.badge && (
+                        <Badge variant="secondary" className="ml-auto">
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </a>
+                  );
+                })}
+              </nav>
+            </SheetContent>
+          </Sheet>
+          
+          <a href="/" className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">AR</span>
+            </div>
+            <span className="hidden font-bold sm:inline-block">AithosReach</span>
+          </a>
         </div>
 
-        {/* Primary nav as pill group */}
-        <nav className="hidden md:flex items-center gap-1 text-sm rounded-full border bg-background/60 p-1 shadow-sm">
-          {nav.map((item) => {
-            const active = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href;
             return (
-              <Link
-                key={item.href}
+              <a
+                key={item.name}
                 href={item.href}
-                className={`relative px-3 py-1.5 rounded-full transition-colors ${active ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  {item.label === "Dashboard" && <Gauge className="h-3.5 w-3.5" />}
-                  {item.label === "Posts" && <FileText className="h-3.5 w-3.5" />}
-                  {item.label === "Novo Post" && <PlusCircle className="h-3.5 w-3.5" />}
-                  {item.label === "Contas" && <Users className="h-3.5 w-3.5" />}
-                  {item.label === "Analytics" && <LayoutGrid className="h-3.5 w-3.5" />}
-                  <span>{item.label}</span>
-                </span>
-                {active && (
-                  <span className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-blue-600/10 via-violet-600/10 to-fuchsia-600/10 ring-1 ring-border" />
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors relative",
+                  isActive
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "hover:bg-muted text-muted-foreground hover:text-foreground"
                 )}
-              </Link>
+              >
+                {item.icon}
+                {item.name}
+                {item.badge && (
+                  <Badge variant="secondary" className="ml-1">
+                    {item.badge}
+                  </Badge>
+                )}
+              </a>
             );
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
-          <div className="hidden lg:flex items-center mr-2">
-            <div className="relative">
-              <Input placeholder="Buscar..." className="h-9 w-56 pr-10" />
-              <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">/</kbd>
-            </div>
+        {/* Search Bar */}
+        <div className="flex-1 max-w-md mx-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Buscar posts, analytics..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4"
+            />
           </div>
-          <Button variant="ghost" size="icon" aria-label="Notificações" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-fuchsia-600" />
+        </div>
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTheme}
+            className="hidden sm:flex"
+          >
+            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <span className="sr-only">Alternar tema</span>
           </Button>
-          <Button asChild variant="ghost" className="hidden sm:inline-flex">
-            <Link href="/accounts"><Users className="h-4 w-4 mr-2" />Contas</Link>
+
+          {/* Notifications */}
+          <Button variant="ghost" size="sm" className="relative">
+            <Bell className="h-4 w-4" />
+            {notifications > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+              >
+                {notifications > 99 ? '99+' : notifications}
+              </Badge>
+            )}
+            <span className="sr-only">Notificações</span>
           </Button>
-          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-600 to-fuchsia-600 opacity-90" />
-          <Button asChild>
-            <Link href="/posts/new"><PlusCircle className="h-4 w-4 mr-2" />Novo Post</Link>
+
+          {/* Create Post Button */}
+          <Button size="sm" onClick={onCreatePost} className="hidden sm:flex">
+            <Plus className="h-4 w-4 mr-1" />
+            Novo Post
           </Button>
+
+          {/* User Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                {user?.avatar ? (
+                  <img 
+                    src={user.avatar} 
+                    alt={user.name} 
+                    className="h-6 w-6 rounded-full"
+                  />
+                ) : (
+                  <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                    <User className="h-3 w-3 text-primary-foreground" />
+                  </div>
+                )}
+                <span className="hidden sm:inline text-sm">
+                  {user?.name || 'Usuário'}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium">{user?.name || 'Usuário'}</p>
+                <p className="text-xs text-muted-foreground">{user?.email || 'usuario@exemplo.com'}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                Configurações
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-
-      {/* Sub-header: breadcrumbs and quick actions (desktop) */}
-      <div className="hidden md:block border-t bg-background/60">
-        <div className="w-full px-6 py-2 flex items-center justify-between">
-          <div className="text-xs text-muted-foreground flex items-center gap-2">
-            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-            {crumbs.length > 0 && <span>/</span>}
-            {crumbs.map((c, i) => (
-              <span key={c.href} className="flex items-center gap-2">
-                <Link href={c.href} className={`hover:text-foreground transition-colors ${i === crumbs.length - 1 ? "text-foreground" : ""}`}>{c.label}</Link>
-                {i < crumbs.length - 1 && <span>/</span>}
-              </span>
+      
+      {/* Breadcrumb Sub-header */}
+      <div className="border-b bg-muted/40">
+        <div className="container flex h-12 items-center justify-between">
+          <div className="flex items-center gap-2 text-sm">
+            {breadcrumbs.map((crumb, index) => (
+              <div key={crumb.href} className="flex items-center gap-2">
+                {index > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                <a
+                  href={crumb.href}
+                  className={cn(
+                    "transition-colors",
+                    index === breadcrumbs.length - 1
+                      ? "text-foreground font-medium"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {crumb.name}
+                </a>
+              </div>
             ))}
           </div>
-          {pathname !== "/dashboard" && (
-            <div className="flex items-center gap-2">
-              <Button asChild size="sm" variant="outline"><Link href="/accounts">Gerenciar contas</Link></Button>
-              <Button asChild size="sm"><Link href="/posts/new">Novo Post</Link></Button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {open && (
-        <div className="md:hidden border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="w-full px-6 py-3 flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Input placeholder="Buscar..." className="h-9 pr-10" />
-                <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">/</kbd>
-              </div>
-              <Button asChild variant="outline" className="ml-auto">
-                <Link href="/posts/new"><PlusCircle className="h-4 w-4 mr-2" />Novo Post</Link>
+          
+          <div className="flex items-center gap-2">
+            {/* Mobile Create Post Button */}
+            <Button size="sm" onClick={onCreatePost} className="sm:hidden">
+              <Plus className="h-4 w-4" />
+            </Button>
+            
+            {/* Page-specific actions */}
+            {pathname === '/posts' && (
+              <>
+                <Button size="sm" variant="outline">
+                  Filtros
+                </Button>
+                <Button size="sm" variant="outline">
+                  Exportar
+                </Button>
+              </>
+            )}
+            
+            {pathname === '/analytics' && (
+              <Button size="sm" variant="outline">
+                Relatório
               </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {nav.map((item) => {
-                const active = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
-                return (
-                  <Link key={item.href} href={item.href} onClick={() => setOpen(false)}
-                    className={`px-3 py-2 rounded-md text-sm border flex items-center gap-2 ${active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-                    {item.label === "Dashboard" && <Gauge className="h-3.5 w-3.5" />}
-                    {item.label === "Posts" && <FileText className="h-3.5 w-3.5" />}
-                    {item.label === "Novo Post" && <PlusCircle className="h-3.5 w-3.5" />}
-                    {item.label === "Contas" && <Users className="h-3.5 w-3.5" />}
-                    {item.label === "Analytics" && <LayoutGrid className="h-3.5 w-3.5" />}
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 }
