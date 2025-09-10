@@ -2,22 +2,46 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, CheckCircle2, Clock, TrendingUp, AlertTriangle, PlusCircle, Users, FileText, RefreshCw } from "lucide-react";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Calendar, CheckCircle2, Clock, TrendingUp, AlertTriangle, PlusCircle, 
+  Users, FileText, RefreshCw, BarChart3, Eye, Heart, MessageCircle, 
+  Share2, Target, Zap, Activity, ArrowUpRight, ArrowDownRight,
+  Filter, Download, Settings, Bell, Sparkles, X, Edit, Trash2, Plus
+} from "lucide-react";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
+import { useEffect, useState, useMemo } from "react";
 import { PostComposer } from "@/components/post-composer";
 import { postsApi, PostFilters } from "@/lib/posts-api";
 import { Post } from "@/lib/types";
 import { toast } from "sonner";
 
 const chartData = [
-  { name: "Dom", published: 6, engagements: 120 },
-  { name: "Seg", published: 12, engagements: 280 },
-  { name: "Ter", published: 8, engagements: 210 },
-  { name: "Qua", published: 15, engagements: 340 },
-  { name: "Qui", published: 10, engagements: 260 },
-  { name: "Sex", published: 18, engagements: 420 },
-  { name: "Sáb", published: 9, engagements: 200 },
+  { name: "Dom", published: 6, engagements: 120, views: 1200, clicks: 45, shares: 12, comments: 8 },
+  { name: "Seg", published: 12, engagements: 280, views: 2800, clicks: 95, shares: 28, comments: 15 },
+  { name: "Ter", published: 8, engagements: 210, views: 2100, clicks: 72, shares: 21, comments: 12 },
+  { name: "Qua", published: 15, engagements: 340, views: 3400, clicks: 125, shares: 34, comments: 22 },
+  { name: "Qui", published: 10, engagements: 260, views: 2600, clicks: 88, shares: 26, comments: 18 },
+  { name: "Sex", published: 18, engagements: 420, views: 4200, clicks: 155, shares: 42, comments: 28 },
+  { name: "Sáb", published: 9, engagements: 200, views: 2000, clicks: 68, shares: 20, comments: 10 },
+];
+
+const networkData = [
+  { name: "LinkedIn", value: 45, color: "#0077B5" },
+  { name: "Twitter", value: 30, color: "#1DA1F2" },
+  { name: "Instagram", value: 20, color: "#E4405F" },
+  { name: "Facebook", value: 5, color: "#1877F2" },
+];
+
+const timeSlots = [
+  { hour: "06:00", posts: 2, engagement: 85 },
+  { hour: "09:00", posts: 8, engagement: 92 },
+  { hour: "12:00", posts: 12, engagement: 88 },
+  { hour: "15:00", posts: 15, engagement: 95 },
+  { hour: "18:00", posts: 18, engagement: 98 },
+  { hour: "21:00", posts: 10, engagement: 90 },
 ];
 
 export default function DashboardPage() {
@@ -115,7 +139,7 @@ export default function DashboardPage() {
     }
   };
 
-  const useCountUp = (to: number, durationMs = 900) => {
+  const useCountUp = (to: number, durationMs = 1200) => {
     const [value, setValue] = useState(0);
     useEffect(() => {
       if (to === 0) {
@@ -134,6 +158,24 @@ export default function DashboardPage() {
       return () => cancelAnimationFrame(raf);
     }, [to, durationMs]);
     return value;
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+  };
+
+  const getGrowthIcon = (growth: number) => {
+    if (growth > 0) return <ArrowUpRight className="h-3 w-3" />;
+    if (growth < 0) return <ArrowDownRight className="h-3 w-3" />;
+    return null;
+  };
+
+  const getGrowthColor = (growth: number) => {
+    if (growth > 0) return 'text-emerald-600 bg-emerald-100/60';
+    if (growth < 0) return 'text-red-600 bg-red-100/60';
+    return 'text-gray-600 bg-gray-100/60';
   };
 
   const Sparkline = ({ dataKey, color }: { dataKey: string; color: string }) => {
@@ -168,13 +210,72 @@ export default function DashboardPage() {
 
   const pendingCount = useCountUp(stats.pending);
   const publishedCount = useCountUp(stats.published);
-  const engagementsCount = useCountUp(1600);
+  const engagementsCount = useCountUp(1847);
   const errorsCount = useCountUp(stats.errors);
-  const [metric, setMetric] = useState<'engagements' | 'published'>('engagements');
-  const metricCfg: Record<typeof metric, { label: string; color: string }> = {
-    engagements: { label: 'Engajamentos', color: '#8b5cf6' }, // violet-500
-    published:   { label: 'Publicados',   color: '#10b981' }, // emerald-500
+  const viewsCount = useCountUp(18470);
+  const clicksCount = useCountUp(653);
+  
+  const [metric, setMetric] = useState<'engagements' | 'published' | 'views' | 'clicks'>('engagements');
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d');
+  
+  const metricCfg: Record<typeof metric, { label: string; color: string; icon: any }> = {
+    engagements: { label: 'Engajamentos', color: '#8b5cf6', icon: Heart },
+    published: { label: 'Publicados', color: '#10b981', icon: CheckCircle2 },
+    views: { label: 'Visualizações', color: '#3b82f6', icon: Eye },
+    clicks: { label: 'Cliques', color: '#f59e0b', icon: Target },
   };
+
+  const kpiData = useMemo(() => [
+    {
+      title: 'Posts Pendentes',
+      value: pendingCount,
+      growth: 5,
+      icon: Clock,
+      color: 'blue',
+      description: 'na fila para publicar'
+    },
+    {
+      title: 'Publicados (7d)',
+      value: publishedCount,
+      growth: 12,
+      icon: CheckCircle2,
+      color: 'emerald',
+      description: 'vs semana anterior'
+    },
+    {
+      title: 'Engajamentos (7d)',
+      value: engagementsCount,
+      growth: 7,
+      icon: Heart,
+      color: 'violet',
+      description: 'esta semana'
+    },
+    {
+      title: 'Visualizações (7d)',
+      value: viewsCount,
+      growth: 15,
+      icon: Eye,
+      color: 'blue',
+      description: 'alcance total'
+    },
+    {
+      title: 'Taxa de Cliques',
+      value: 3.54,
+      growth: -2,
+      icon: Target,
+      color: 'amber',
+      description: 'CTR médio',
+      isPercentage: true
+    },
+    {
+      title: 'Erros',
+      value: errorsCount,
+      growth: -25,
+      icon: AlertTriangle,
+      color: 'red',
+      description: 'vs período anterior'
+    }
+  ], [pendingCount, publishedCount, engagementsCount, viewsCount, errorsCount]);
   return (
     <div className="p-0">
       {/* Hero */}
@@ -205,202 +306,498 @@ export default function DashboardPage() {
 
       <div className="w-full px-8 lg:px-12 xl:px-16 2xl:px-24 py-6 space-y-6">
         {/* KPI Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:gap-5">
-          <Card className="border border-blue-200/40 transition hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-              <Clock className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{pendingCount}</div>
-              <div className="text-xs text-muted-foreground flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-100/60 px-1.5 py-0.5 rounded">↗ 5%</span>
-                <span>na fila para publicar</span>
-              </div>
-              <div className="mt-3"><Sparkline dataKey="published" color="#3b82f6" /></div>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-emerald-200/40 transition hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Publicados (7d)</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{publishedCount}</div>
-              <div className="text-xs text-emerald-600 inline-flex items-center gap-1 bg-emerald-100/60 px-1.5 py-0.5 rounded">▲ 12% vs semana anterior</div>
-              <div className="mt-3"><Sparkline dataKey="published" color="#10b981" /></div>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-violet-200/40 transition hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Engajamentos (7d)</CardTitle>
-              <TrendingUp className="h-4 w-4 text-violet-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{engagementsCount.toLocaleString()}</div>
-              <div className="text-xs text-violet-600 inline-flex items-center gap-1 bg-violet-100/60 px-1.5 py-0.5 rounded">▲ 7% esta semana</div>
-              <div className="mt-3"><Sparkline dataKey="engagements" color="#8b5cf6" /></div>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-amber-200/60 transition hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Erros</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{errorsCount}</div>
-              <div className="text-xs text-amber-600 inline-flex items-center gap-1 bg-amber-100/60 px-1.5 py-0.5 rounded">▼ 2% vs 7d</div>
-              <div className="mt-3"><Sparkline dataKey="published" color="#f59e0b" /></div>
-            </CardContent>
-          </Card>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 2xl:gap-5">
+          {kpiData.map((kpi, index) => {
+            const IconComponent = kpi.icon;
+            const colorClasses = {
+              blue: 'border-blue-200/40 hover:border-blue-300/60',
+              emerald: 'border-emerald-200/40 hover:border-emerald-300/60',
+              violet: 'border-violet-200/40 hover:border-violet-300/60',
+              amber: 'border-amber-200/40 hover:border-amber-300/60',
+              red: 'border-red-200/40 hover:border-red-300/60'
+            };
+            const iconColors = {
+              blue: 'text-blue-500',
+              emerald: 'text-emerald-500',
+              violet: 'text-violet-500',
+              amber: 'text-amber-500',
+              red: 'text-red-500'
+            };
+            
+            return (
+              <Card key={index} className={`${colorClasses[kpi.color as keyof typeof colorClasses]} transition-all duration-200 hover:shadow-lg hover:scale-[1.02] group`}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                    {kpi.title}
+                  </CardTitle>
+                  <div className={`p-2 rounded-lg bg-background/60 group-hover:bg-background transition-colors`}>
+                    <IconComponent className={`h-4 w-4 ${iconColors[kpi.color as keyof typeof iconColors]}`} />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold tracking-tight">
+                    {kpi.isPercentage ? `${kpi.value}%` : formatNumber(kpi.value)}
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <div className={`text-xs inline-flex items-center gap-1 px-2 py-1 rounded-full font-medium ${getGrowthColor(kpi.growth)}`}>
+                      {getGrowthIcon(kpi.growth)}
+                      {Math.abs(kpi.growth)}%
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {kpi.description}
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <Sparkline 
+                      dataKey={index < 2 ? "published" : "engagements"} 
+                      color={{
+                        blue: "#3b82f6",
+                        emerald: "#10b981",
+                        violet: "#8b5cf6",
+                        amber: "#f59e0b",
+                        red: "#ef4444"
+                      }[kpi.color as keyof typeof colorClasses]} 
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Content Grid */}
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 2xl:gap-8">
-          {/* Chart */}
-          <Card className="lg:col-span-2 xl:col-span-3">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-4 2xl:gap-8">
+          {/* Main Chart */}
+          <Card className="lg:col-span-3">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <CardTitle>Performance (7 dias)</CardTitle>
-                <div className="inline-flex items-center gap-1 rounded-full border p-1 bg-background/60">
-                  <Button variant={metric === 'engagements' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('engagements')}>Engajamentos</Button>
-                  <Button variant={metric === 'published' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('published')}>Publicados</Button>
+                <div className="flex items-center gap-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-violet-500" />
+                    Performance Analytics
+                  </CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    {timeRange === '7d' ? 'Últimos 7 dias' : timeRange === '30d' ? 'Últimos 30 dias' : 'Últimos 90 dias'}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center gap-1 rounded-lg border p-1 bg-background/60">
+                    <Button variant={timeRange === '7d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('7d')}>7d</Button>
+                    <Button variant={timeRange === '30d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('30d')}>30d</Button>
+                    <Button variant={timeRange === '90d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('90d')}>90d</Button>
+                  </div>
+                  <Separator orientation="vertical" className="h-6" />
+                  <div className="inline-flex items-center gap-1 rounded-lg border p-1 bg-background/60">
+                    <Button variant={metric === 'engagements' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('engagements')}>
+                      <Heart className="h-3 w-3 mr-1" />Engajamentos
+                    </Button>
+                    <Button variant={metric === 'published' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('published')}>
+                      <CheckCircle2 className="h-3 w-3 mr-1" />Publicados
+                    </Button>
+                    <Button variant={metric === 'views' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('views')}>
+                      <Eye className="h-3 w-3 mr-1" />Views
+                    </Button>
+                    <Button variant={metric === 'clicks' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('clicks')}>
+                      <Target className="h-3 w-3 mr-1" />Cliques
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
+                  <AreaChart data={chartData} margin={{ top: 10, right: 30, bottom: 0, left: 0 }}>
                     <defs>
                       <linearGradient id="fillMetric" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={metricCfg[metric].color} stopOpacity={0.35} />
-                        <stop offset="95%" stopColor={metricCfg[metric].color} stopOpacity={0} />
+                        <stop offset="5%" stopColor={metricCfg[metric].color} stopOpacity={0.4} />
+                        <stop offset="95%" stopColor={metricCfg[metric].color} stopOpacity={0.05} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-40" />
-                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ borderRadius: 8 }} formatter={(v: any) => [v, metricCfg[metric].label]} />
-                    <Area type="monotone" dataKey={metric} stroke={metricCfg[metric].color} fill="url(#fillMetric)" strokeWidth={2} />
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <XAxis 
+                      dataKey="name" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      fontSize={12} 
+                      tickLine={false} 
+                      axisLine={false}
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      stroke="hsl(var(--muted-foreground))" 
+                      fontSize={12} 
+                      tickLine={false} 
+                      axisLine={false}
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      tickFormatter={(value) => formatNumber(value)}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        borderRadius: 12, 
+                        border: 'none',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        backgroundColor: 'hsl(var(--background))',
+                        color: 'hsl(var(--foreground))'
+                      }} 
+                      formatter={(value: any, name: string) => [
+                        formatNumber(value), 
+                        metricCfg[metric].label
+                      ]}
+                      labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey={metric} 
+                      stroke={metricCfg[metric].color} 
+                      fill="url(#fillMetric)" 
+                      strokeWidth={3}
+                      dot={{ fill: metricCfg[metric].color, strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: metricCfg[metric].color, strokeWidth: 2, fill: 'white' }}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: metricCfg[metric].color }}></div>
+                    <span className="text-sm font-medium">{metricCfg[metric].label}</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Total: {formatNumber(chartData.reduce((acc, curr) => acc + curr[metric], 0))}
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar
+                </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Upcoming */}
+          {/* Network Distribution */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle>Agendados</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Share2 className="h-4 w-4 text-blue-500" />
+                Distribuição por Rede
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={networkData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={70}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {networkData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: any) => [`${value}%`, 'Participação']}
+                      contentStyle={{
+                        borderRadius: 8,
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        backgroundColor: 'hsl(var(--background))'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="space-y-2 mt-2">
+                {networkData.map((network, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: network.color }}></div>
+                      <span className="text-sm font-medium">{network.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Progress value={network.value} className="w-16 h-2" />
+                      <span className="text-sm text-muted-foreground w-8">{network.value}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Performance Insights */}
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 2xl:gap-8">
+          {/* Best Times */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-emerald-500" />
+                Melhores Horários
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {timeSlots.map((slot, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 rounded-lg border bg-gradient-to-r from-background to-accent/20">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm font-mono font-medium">{slot.hour}</div>
+                      <div className="text-xs text-muted-foreground">{slot.posts} posts</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Progress value={slot.engagement} className="w-12 h-2" />
+                      <span className="text-sm font-medium text-emerald-600">{slot.engagement}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-3 border-t">
+                <Button variant="outline" size="sm" className="w-full">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Otimizar Agendamentos
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Posts */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-violet-500" />
+                Próximos Posts
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="space-y-3 max-h-56 overflow-auto pr-1">
-                {posts && posts.length > 0 ? posts.filter(p => p.status === 'pending').slice(0, 3).map((post) => (
-                  <div key={post.id} className="flex items-start justify-between border rounded-md p-3 transition hover:bg-accent/30">
-                    <div className="pr-2">
-                      <div className="text-sm font-medium flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-violet-500" />
-                        <span>{post.content.substring(0, 40)}...</span>
+              <div className="space-y-3 max-h-64 overflow-auto pr-1">
+                {posts && posts.length > 0 ? posts.filter(p => p.status === 'pending').slice(0, 4).map((post) => (
+                  <div key={post.id} className="flex items-start justify-between border rounded-lg p-3 transition hover:bg-accent/30 group">
+                    <div className="pr-2 flex-1">
+                      <div className="text-sm font-medium flex items-center gap-2 mb-1">
+                        <FileText className="h-3 w-3 text-violet-500" />
+                        <span className="truncate">{post.content.substring(0, 35)}...</span>
                       </div>
                       <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
-                        <span>{formatDate(post.scheduledAt || post.createdAt)}</span>
-                        <span className="inline-flex items-center gap-1">
-                          {post.networks.map((network: string) => (
-                            <span key={network} className="px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground text-[10px] uppercase tracking-wide">{network}</span>
+                        <Badge variant="outline" className="text-[10px] px-1 py-0">
+                          {formatDate(post.scheduledAt || post.createdAt).split(' ')[1]}
+                        </Badge>
+                        <div className="inline-flex items-center gap-1">
+                          {post.networks.slice(0, 2).map((network: string) => (
+                            <span key={network} className="px-1 py-0.5 rounded bg-secondary text-secondary-foreground text-[9px] uppercase tracking-wide">{network}</span>
                           ))}
-                        </span>
+                          {post.networks.length > 2 && (
+                            <span className="text-[9px] text-muted-foreground">+{post.networks.length - 2}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="ghost"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => handlePostAction(post.id, 'cancel')}
                     >
-                      Cancelar
+                      ✕
                     </Button>
                   </div>
                 )) : (
-                  <div className="text-center py-4 text-muted-foreground">
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">Nenhum post agendado</p>
                   </div>
                 )}
               </div>
-              <div className="pt-1"><Button asChild variant="ghost" className="px-0 h-auto"><a href="/posts">Ver todos</a></Button></div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Accounts + Activity */}
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 2xl:gap-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Contas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[
-                { id: "ln", label: "Aithos Reach", provider: "LinkedIn", status: "Conectada" },
-                { id: "ig", label: "@aithosreach", provider: "Instagram", status: "Conectar" },
-              ].map((a) => (
-                <div key={a.id} className="flex items-center justify-between border rounded-md p-3">
-                  <div>
-                    <div className="text-sm font-medium">{a.provider}</div>
-                    <div className="text-xs text-muted-foreground">{a.label}</div>
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded ${a.status === 'Conectada' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{a.status}</span>
-                </div>
-              ))}
-              <div className="pt-1"><Button asChild variant="ghost" className="px-0 h-auto"><a href="/accounts">Gerenciar</a></Button></div>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-2 xl:col-span-3">
-            <CardHeader className="pb-2">
-              <CardTitle>Atividade recente</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[
-                { id: 1, text: "Post publicado no Twitter", meta: "há 5min" },
-                { id: 2, text: "Falha no LinkedIn — token expirado", meta: "há 20min" },
-                { id: 3, text: "Post reprogramado para amanhã", meta: "há 1h" },
-              ].map((i) => (
-                <div key={i.id} className="flex items-start gap-3 border rounded-md p-3 transition hover:bg-accent/30">
-                  <div className="h-2 w-2 rounded-full bg-violet-500 mt-2" />
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">{i.text}</div>
-                    <div className="text-xs text-muted-foreground">{i.meta}</div>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Insights */}
-        <div className="grid gap-6 grid-cols-1">
-          <Card>
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle>Posts Recentes</CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={loadPosts}
-                  disabled={loading}
-                >
-                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => setShowComposer(!showComposer)}
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Novo Post
+              <div className="pt-2 border-t">
+                <Button asChild variant="outline" size="sm" className="w-full">
+                  <a href="/posts">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver Todos os Posts
+                  </a>
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-amber-500" />
+                Ações Rápidas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid gap-2">
+                <Button className="w-full justify-start" onClick={() => setShowComposer(true)}>
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Criar Post
+                </Button>
+                <Button variant="outline" className="w-full justify-start" asChild>
+                  <a href="/analytics">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Ver Analytics
+                  </a>
+                </Button>
+                <Button variant="outline" className="w-full justify-start" asChild>
+                  <a href="/accounts">
+                    <Users className="h-4 w-4 mr-2" />
+                    Gerenciar Contas
+                  </a>
+                </Button>
+                <Button variant="outline" className="w-full justify-start" asChild>
+                  <a href="/settings">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Configurações
+                  </a>
+                </Button>
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Próxima publicação</span>
+                  <span className="font-medium">em 2h 15m</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Quota mensal</span>
+                  <div className="flex items-center gap-2">
+                    <Progress value={67} className="w-12 h-2" />
+                    <span className="font-medium">67%</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Activity Feed */}
+        <div className="grid gap-6 grid-cols-1">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-blue-500" />
+                Atividade Recente
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { 
+                    id: 1, 
+                    text: "Post publicado com sucesso no LinkedIn", 
+                    meta: "há 5 minutos", 
+                    type: "success",
+                    icon: CheckCircle2,
+                    network: "LinkedIn"
+                  },
+                  { 
+                    id: 2, 
+                    text: "Falha na publicação no Twitter — token expirado", 
+                    meta: "há 20 minutos", 
+                    type: "error",
+                    icon: AlertTriangle,
+                    network: "Twitter"
+                  },
+                  { 
+                    id: 3, 
+                    text: "Post reagendado para amanhã às 09:00", 
+                    meta: "há 1 hora", 
+                    type: "info",
+                    icon: Clock,
+                    network: "Instagram"
+                  },
+                  { 
+                    id: 4, 
+                    text: "Nova conta conectada: Facebook Business", 
+                    meta: "há 2 horas", 
+                    type: "success",
+                    icon: Users,
+                    network: "Facebook"
+                  },
+                  { 
+                    id: 5, 
+                    text: "Engajamento aumentou 15% esta semana", 
+                    meta: "há 3 horas", 
+                    type: "info",
+                    icon: TrendingUp,
+                    network: null
+                  }
+                ].map((activity) => {
+                  const IconComponent = activity.icon;
+                  const typeColors = {
+                    success: 'text-emerald-500 bg-emerald-100/60',
+                    error: 'text-red-500 bg-red-100/60',
+                    info: 'text-blue-500 bg-blue-100/60'
+                  };
+                  
+                  return (
+                    <div key={activity.id} className="flex items-start gap-4 p-4 rounded-lg border bg-gradient-to-r from-background to-accent/10 transition hover:bg-accent/20 group">
+                      <div className={`p-2 rounded-lg ${typeColors[activity.type as keyof typeof typeColors]}`}>
+                        <IconComponent className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium group-hover:text-foreground transition-colors">
+                          {activity.text}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-muted-foreground">{activity.meta}</span>
+                          {activity.network && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                              {activity.network}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                  Mostrando as 5 atividades mais recentes
+                </div>
+                <Button variant="outline" size="sm">
+                  <Activity className="h-4 w-4 mr-2" />
+                  Ver Histórico Completo
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Posts */}
+        <div className="grid gap-6 grid-cols-1">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-purple-500" />
+                  Posts Recentes
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={loadPosts}
+                    disabled={loading}
+                  >
+                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowComposer(!showComposer)}
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Novo Post
+                  </Button>
+                </div>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -408,50 +805,85 @@ export default function DashboardPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                 </div>
               ) : posts.length > 0 ? (
-                <div className="space-y-3 max-h-96 overflow-auto">
-                  {posts.slice(0, 5).map((post) => (
-                    <div key={post.id} className="flex items-start justify-between border rounded-md p-3 transition hover:bg-accent/30">
-                      <div className="pr-2 flex-1">
-                        <div className="text-sm font-medium flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-violet-500" />
-                          <span className="truncate">{post.content.substring(0, 60)}...</span>
+                <div className="space-y-4">
+                  {posts.slice(0, 4).map((post, index) => {
+                    const statusConfig = {
+                      published: { color: 'bg-emerald-500', label: 'Publicado', textColor: 'text-emerald-700' },
+                      pending: { color: 'bg-blue-500', label: 'Agendado', textColor: 'text-blue-700' },
+                      error: { color: 'bg-red-500', label: 'Erro', textColor: 'text-red-700' },
+                      canceled: { color: 'bg-gray-400', label: 'Cancelado', textColor: 'text-gray-700' }
+                    };
+                    
+                    const config = statusConfig[post.status as keyof typeof statusConfig] || statusConfig.pending;
+                    
+                    return (
+                      <div key={post.id} className="group relative p-4 rounded-lg border bg-gradient-to-r from-background to-accent/5 hover:to-accent/10 transition-all duration-200">
+                        <div className="flex items-start gap-4">
+                          <div className="flex-shrink-0">
+                            <div className={`h-3 w-3 rounded-full ${config.color} shadow-sm`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <p className="text-sm font-medium line-clamp-2 group-hover:text-foreground transition-colors">
+                                  {post.content.substring(0, 80)}...
+                                </p>
+                                <div className="flex items-center gap-3 mt-2">
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatDate(post.scheduledAt || post.createdAt)}
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    {post.networks.slice(0, 3).map((network, i) => (
+                                      <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0">
+                                        {network}
+                                      </Badge>
+                                    ))}
+                                    {post.networks.length > 3 && (
+                                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                        +{post.networks.length - 3}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Badge variant="outline" className={`text-[10px] px-2 py-1 ${config.textColor} border-current/20`}>
+                                  {config.label}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap mt-1">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(post.status)}`}>
-                            {getStatusText(post.status)}
-                          </span>
-                          <span>{formatDate(post.scheduledAt || post.createdAt)}</span>
-                          <span className="inline-flex items-center gap-1">
-                            {post.networks.map((network) => (
-                              <span key={network} className="px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground text-[10px] uppercase tracking-wide">
-                                {network}
-                              </span>
-                            ))}
-                          </span>
+                        
+                        {/* Action buttons - show on hover */}
+                        <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-blue-100 hover:text-blue-600">
+                            <Eye className="h-3.5 w-3.5" />
+                          </Button>
+                          {post.status === 'pending' && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-7 w-7 p-0 hover:bg-red-100 hover:text-red-600"
+                              onClick={() => handlePostAction(post.id, 'cancel')}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {post.status === 'error' && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-7 w-7 p-0 hover:bg-green-100 hover:text-green-600"
+                              onClick={() => handlePostAction(post.id, 'retry')}
+                            >
+                              <RefreshCw className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </div>
-                      <div className="flex gap-1">
-                        {post.status === 'pending' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handlePostAction(post.id, 'cancel')}
-                          >
-                            Cancelar
-                          </Button>
-                        )}
-                        {post.status === 'error' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handlePostAction(post.id, 'retry')}
-                          >
-                            Tentar novamente
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
@@ -460,6 +892,26 @@ export default function DashboardPage() {
                   <p className="text-sm">Crie seu primeiro post clicando em "Novo Post"</p>
                 </div>
               )}
+              
+              <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                  {posts.length} posts no total
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <a href="/posts">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Ver Todos
+                    </a>
+                  </Button>
+                  <Button size="sm" asChild>
+                    <a href="/posts/new">
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Criar Post
+                    </a>
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
