@@ -417,13 +417,13 @@ export default function DashboardPage() {
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="inline-flex items-center gap-1 rounded-lg border p-1 bg-background/60">
+                  <div className="inline-flex items-center gap-1 rounded-lg border p-1 bg-white/60 dark:bg-slate-800/60">
                     <Button variant={timeRange === '7d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('7d')}>7d</Button>
                     <Button variant={timeRange === '30d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('30d')}>30d</Button>
                     <Button variant={timeRange === '90d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('90d')}>90d</Button>
                   </div>
                   <Separator orientation="vertical" className="h-6" />
-                  <div className="inline-flex items-center gap-1 rounded-lg border p-1 bg-background/60">
+                  <div className="inline-flex items-center gap-1 rounded-lg border p-1 bg-white/60 dark:bg-slate-800/60">
                     <Button variant={metric === 'engagements' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('engagements')}>
                       <Heart className="h-3 w-3 mr-1" />Engajamentos
                     </Button>
