@@ -278,68 +278,104 @@ export default function DashboardPage() {
   ], [pendingCount, publishedCount, engagementsCount, viewsCount, errorsCount]);
   return (
     <div className="p-0">
-      {/* Hero */}
-      <div className="relative overflow-hidden border-b">
-        <div className="absolute -top-32 -left-32 h-72 w-72 rounded-full bg-gradient-to-tr from-blue-600/30 via-violet-600/30 to-fuchsia-600/30 blur-3xl" />
-        <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-tr from-fuchsia-600/20 via-violet-600/20 to-blue-600/20 blur-3xl" />
-        <svg className="absolute inset-0 h-full w-full opacity-[0.06]" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-              <path d="M24 0H0V24" fill="none" stroke="currentColor" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-        <div className="w-full px-8 lg:px-12 xl:px-16 2xl:px-24 py-10 relative">
-          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
-            <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Dashboard</h1>
-              <p className="text-sm md:text-base text-muted-foreground mt-1">Acompanhe performance, publique com confiança e gerencie suas contas.</p>
+      {/* Hero Section com Gradiente */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20">
+        {/* Elementos decorativos animados */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-blob"></div>
+          <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+        </div>
+        
+        <div className="relative w-full px-8 lg:px-12 xl:px-16 2xl:px-24 py-12">
+          <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
+            <div className="flex-1 animate-fade-in">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                  <BarChart3 className="h-6 w-6 text-white" />
+                </div>
+                <Badge variant="secondary" className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Dashboard
+                </Badge>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent mb-3">
+                Bem-vindo de volta!
+              </h1>
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
+                Acompanhe sua performance, publique com confiança e gerencie suas contas sociais em um só lugar.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button asChild variant="default"><a href="/posts/new"><PlusCircle className="h-4 w-4 mr-2" />Novo Post</a></Button>
-              <Button asChild variant="outline"><a href="/accounts"><Users className="h-4 w-4 mr-2" />Contas</a></Button>
+            <div className="flex items-center gap-3 animate-slide-up">
+              <Button 
+                asChild 
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                <a href="/posts/new">
+                  <PlusCircle className="h-5 w-5 mr-2" />
+                  Novo Post
+                </a>
+              </Button>
+              <Button 
+                asChild 
+                variant="outline" 
+                size="lg"
+                className="bg-white/80 backdrop-blur-sm border-white/20 hover:bg-white/90 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <a href="/accounts">
+                  <Users className="h-5 w-5 mr-2" />
+                  Contas
+                </a>
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
       <div className="w-full px-8 lg:px-12 xl:px-16 2xl:px-24 py-6 space-y-6">
-        {/* KPI Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 2xl:gap-5">
+        {/* KPI Cards Modernos */}
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {kpiData.map((kpi, index) => {
             const IconComponent = kpi.icon;
-            const colorClasses = {
-              blue: 'border-blue-200/40 hover:border-blue-300/60',
-              emerald: 'border-emerald-200/40 hover:border-emerald-300/60',
-              violet: 'border-violet-200/40 hover:border-violet-300/60',
-              amber: 'border-amber-200/40 hover:border-amber-300/60',
-              red: 'border-red-200/40 hover:border-red-300/60'
+            const gradientClasses = {
+              blue: 'from-blue-500/10 to-blue-600/5 border-blue-200/30',
+              emerald: 'from-emerald-500/10 to-emerald-600/5 border-emerald-200/30',
+              violet: 'from-violet-500/10 to-violet-600/5 border-violet-200/30',
+              amber: 'from-amber-500/10 to-amber-600/5 border-amber-200/30',
+              red: 'from-red-500/10 to-red-600/5 border-red-200/30'
             };
-            const iconColors = {
-              blue: 'text-blue-500',
-              emerald: 'text-emerald-500',
-              violet: 'text-violet-500',
-              amber: 'text-amber-500',
-              red: 'text-red-500'
+            const iconBgClasses = {
+              blue: 'bg-gradient-to-br from-blue-500 to-blue-600',
+              emerald: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
+              violet: 'bg-gradient-to-br from-violet-500 to-violet-600',
+              amber: 'bg-gradient-to-br from-amber-500 to-amber-600',
+              red: 'bg-gradient-to-br from-red-500 to-red-600'
             };
             
             return (
-              <Card key={index} className={`${colorClasses[kpi.color as keyof typeof colorClasses]} transition-all duration-200 hover:shadow-lg hover:scale-[1.02] group`}>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <Card 
+                key={index} 
+                className={`relative overflow-hidden bg-gradient-to-br ${gradientClasses[kpi.color as keyof typeof gradientClasses]} backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:shadow-${kpi.color}-500/10 hover:scale-105 group animate-fade-in`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Efeito de brilho no hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                
+                <CardHeader className="flex flex-row items-center justify-between pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
                     {kpi.title}
                   </CardTitle>
-                  <div className={`p-2 rounded-lg bg-background/60 group-hover:bg-background transition-colors`}>
-                    <IconComponent className={`h-4 w-4 ${iconColors[kpi.color as keyof typeof iconColors]}`} />
+                  <div className={`p-2.5 rounded-xl ${iconBgClasses[kpi.color as keyof typeof iconBgClasses]} shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+                    <IconComponent className="h-4 w-4 text-white" />
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
                   <div className="text-2xl font-bold tracking-tight">
                     {kpi.isPercentage ? `${kpi.value}%` : formatNumber(kpi.value)}
                   </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <div className={`text-xs inline-flex items-center gap-1 px-2 py-1 rounded-full font-medium ${getGrowthColor(kpi.growth)}`}>
+                  <div className="flex items-center justify-between">
+                    <div className={`text-xs inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-medium backdrop-blur-sm ${getGrowthColor(kpi.growth)}`}>
                       {getGrowthIcon(kpi.growth)}
                       {Math.abs(kpi.growth)}%
                     </div>
@@ -347,7 +383,7 @@ export default function DashboardPage() {
                       {kpi.description}
                     </div>
                   </div>
-                  <div className="mt-3">
+                  <div className="mt-4 h-12">
                     <Sparkline 
                       dataKey={index < 2 ? "published" : "engagements"} 
                       color={{
@@ -356,7 +392,7 @@ export default function DashboardPage() {
                         violet: "#8b5cf6",
                         amber: "#f59e0b",
                         red: "#ef4444"
-                      }[kpi.color as keyof typeof colorClasses]} 
+                      }[kpi.color as keyof typeof gradientClasses]} 
                     />
                   </div>
                 </CardContent>
