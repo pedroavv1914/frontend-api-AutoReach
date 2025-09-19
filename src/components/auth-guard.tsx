@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/providers";
+import { Spinner } from "@/components/ui/spinner";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -17,8 +18,13 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   // Mostra loading enquanto verifica autenticação
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background/95 to-muted/20">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="xl" variant="gradient" />
+          <p className="text-sm text-muted-foreground animate-pulse">
+            Verificando autenticação...
+          </p>
+        </div>
       </div>
     );
   }
