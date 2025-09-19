@@ -123,7 +123,7 @@ export default function AccountsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="container mx-auto p-6 space-y-8">
         {/* Header com gradiente */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8 border border-primary/10">
@@ -144,7 +144,7 @@ export default function AccountsPage() {
         </div>
 
         <Tabs defaultValue="accounts" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-background/50 backdrop-blur-sm border border-border/50">
+          <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 backdrop-blur-sm border border-white/20">
             <TabsTrigger value="accounts" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all">
               <Shield className="h-4 w-4 mr-2" />
               Contas
