@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/app/providers";
 import { AppHeader } from "../components/app-header";
+import { ConditionalLayout } from "@/components/conditional-layout";
 import { defaultSEO, generateStructuredData } from "@/lib/seo";
 import Script from "next/script";
 
@@ -91,12 +92,9 @@ export default function RootLayout({
         />
         
         <Providers>
-          <div className="relative flex min-h-screen flex-col">
-            <AppHeader />
-            <main className="flex-1 w-full px-6 md:px-8 xl:px-16 2xl:px-24 py-4">
-              {children}
-            </main>
-          </div>
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
         </Providers>
         
         <Toaster richColors position="top-right" />
