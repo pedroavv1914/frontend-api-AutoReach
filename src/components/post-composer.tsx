@@ -63,6 +63,10 @@ interface NetworkLimits {
   };
 }
 
+interface PostComposerProps {
+  onClose?: () => void;
+}
+
 const networkLimits: NetworkLimits = {
   twitter: { maxLength: 280, supportsMedia: true, maxMedia: 4, supportsScheduling: true },
   facebook: { maxLength: 63206, supportsMedia: true, maxMedia: 10, supportsScheduling: true },
@@ -71,7 +75,7 @@ const networkLimits: NetworkLimits = {
   tiktok: { maxLength: 2200, supportsMedia: true, maxMedia: 1, supportsScheduling: false },
 };
 
-export function PostComposer() {
+export function PostComposer({ onClose }: PostComposerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraft, setIsDraft] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
@@ -157,6 +161,11 @@ export function PostComposer() {
       setIsDraft(false);
       
       form.reset();
+      
+      // Fechar modal se callback fornecido
+      if (onClose) {
+        onClose();
+      }
     } catch (error: unknown) {
       const errorMessage = (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (error as { message?: string })?.message || "Erro ao criar post";
       toast.error(errorMessage);
