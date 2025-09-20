@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Eye, EyeOff, Lock, Mail, Shield, Zap, Users, TrendingUp, Star, Award } from 'lucide-react';
 import styles from './login.module.css';
 
@@ -124,9 +125,9 @@ export default function LoginPage() {
 
           <p className={styles.signupText}>
             Novo na plataforma?{' '}
-            <a href="#" className={styles.signupLink}>
+            <Link href="/register" className={styles.signupLink}>
               Criar conta gratuita
-            </a>
+            </Link>
           </p>
 
           <div className={styles.securityBadges}>
