@@ -2,17 +2,34 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Lock, Mail, Shield, Zap, Users, TrendingUp, Star, Award } from 'lucide-react';
+import { useAuth } from '@/app/providers';
 import styles from './login.module.css';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { login } = useAuth();
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password });
+    setError('');
+    setIsLoading(true);
+
+    try {
+      await login(email, password);
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer login');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -113,9 +130,15 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button type="submit" className={styles.loginButton}>
+            {error && (
+              <div className={styles.errorMessage}>
+                {error}
+              </div>
+            )}
+
+            <button type="submit" className={styles.loginButton} disabled={isLoading}>
               <Lock size={20} />
-              Entrar na Plataforma
+              {isLoading ? 'Entrando...' : 'Entrar na Plataforma'}
             </button>
           </form>
 
