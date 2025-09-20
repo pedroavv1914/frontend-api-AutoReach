@@ -3,8 +3,8 @@ import { z } from 'zod';
 // Schema de validação para variáveis de ambiente
 const envSchema = z.object({
   // API Configuration
-  NEXT_PUBLIC_API_BASE_URL: z.string().url().default('http://localhost:3001'),
-  NEXT_PUBLIC_API_TIMEOUT: z.string().transform(Number).default('10000'),
+  NEXT_PUBLIC_API_BASE_URL: z.string().url().default('http://localhost:3000/api'),
+  NEXT_PUBLIC_API_TIMEOUT: z.string().transform(Number).default(10000),
   
   // Multi-tenant Configuration
   NEXT_PUBLIC_TENANT_HOST: z.string().default('dev.aithosreach.com'),
@@ -27,9 +27,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_ENV: z.enum(['development', 'staging', 'production']).default('development'),
   
   // Feature Flags
-  NEXT_PUBLIC_ENABLE_ANALYTICS: z.string().transform(val => val === 'true').default('true'),
-  NEXT_PUBLIC_ENABLE_NOTIFICATIONS: z.string().transform(val => val === 'true').default('true'),
-  NEXT_PUBLIC_ENABLE_DARK_MODE: z.string().transform(val => val === 'true').default('true'),
+  NEXT_PUBLIC_ENABLE_ANALYTICS: z.string().transform(val => val === 'true').default(true),
+  NEXT_PUBLIC_ENABLE_NOTIFICATIONS: z.string().transform(val => val === 'true').default(true),
+  NEXT_PUBLIC_ENABLE_DARK_MODE: z.string().transform(val => val === 'true').default(true),
 });
 
 // Função para validar e obter variáveis de ambiente
@@ -38,7 +38,7 @@ function getEnvVars() {
     return envSchema.parse(process.env);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const missingVars = error.errors.map(err => err.path.join('.')).join(', ');
+      const missingVars = error.issues.map((err: any) => err.path.join('.')).join(', ');
       throw new Error(`Variáveis de ambiente inválidas ou ausentes: ${missingVars}`);
     }
     throw error;
