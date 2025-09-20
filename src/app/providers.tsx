@@ -56,22 +56,29 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('🔐 AuthProvider: Starting login process...', { email });
       setIsLoading(true);
+      console.log('📡 AuthProvider: Calling authApi.login...');
       const response = await authApi.login({ email, password });
+      console.log('📥 AuthProvider: Received response:', response);
       
       if (response.success && response.data) {
         const { user, token, tenant } = response.data;
+        console.log('💾 AuthProvider: Saving auth data...', { user: user.email, tenant: tenant?.name });
         authApi.saveAuthData(token, user, tenant);
         setUser(user);
         setTenant(tenant);
+        console.log('✅ AuthProvider: Login completed successfully');
       } else {
+        console.error('❌ AuthProvider: Invalid login response structure:', response);
         throw new Error('Resposta de login inválida');
       }
     } catch (error: any) {
-      console.error('Erro no login:', error);
+      console.error('❌ AuthProvider: Login error:', error);
       throw new Error(error?.response?.data?.message || 'Erro ao fazer login');
     } finally {
       setIsLoading(false);
+      console.log('🏁 AuthProvider: Login process finished');
     }
   };
 
