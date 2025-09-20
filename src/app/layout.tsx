@@ -66,30 +66,7 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-slate-50 dark:bg-slate-900 font-sans`}>
         {/* Performance monitoring */}
-        <Script
-          id="performance-observer"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('PerformanceObserver' in window) {
-                const observer = new PerformanceObserver((list) => {
-                  for (const entry of list.getEntries()) {
-                    if (entry.entryType === 'largest-contentful-paint') {
-                      console.log('LCP:', entry.startTime);
-                    }
-                    if (entry.entryType === 'first-input') {
-                      console.log('FID:', entry.processingStart - entry.startTime);
-                    }
-                    if (entry.entryType === 'layout-shift' && !entry.hadRecentInput) {
-                      console.log('CLS:', entry.value);
-                    }
-                  }
-                });
-                observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
-              }
-            `,
-          }}
-        />
+        {/* Performance monitoring removed to reduce console noise */}
         
         <Providers>
           <ConditionalLayout>
@@ -109,10 +86,10 @@ export default function RootLayout({
                 window.addEventListener('load', () => {
                   navigator.serviceWorker.register('/sw.js')
                     .then((registration) => {
-                      console.log('SW registered: ', registration);
+                      // SW registered successfully
                     })
                     .catch((registrationError) => {
-                      console.log('SW registration failed: ', registrationError);
+                      // SW registration failed
                     });
                 });
               }
