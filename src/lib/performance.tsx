@@ -148,7 +148,7 @@ export const measurePerformance = (name: string, fn: () => void) => {
   const result = fn();
   const end = performance.now();
   
-  console.log(`${name} took ${end - start} milliseconds`);
+  // Performance measurement completed silently
   return result;
 };
 
@@ -184,5 +184,5 @@ export const analyzeBundleSize = () => {
     return acc;
   }, 0);
   
-  console.log(`Estimated bundle size: ${Math.round(totalSize / 1024)} KB`);
+  // Bundle size estimated silently
 };
