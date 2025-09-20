@@ -19,16 +19,21 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔍 Login form submitted:', { email, password: '***' });
     setError('');
     setIsLoading(true);
 
     try {
+      console.log('🚀 Calling login function...');
       await login(email, password);
+      console.log('✅ Login successful, redirecting to dashboard...');
       router.push('/dashboard');
     } catch (err: any) {
+      console.error('❌ Login error:', err);
       setError(err.message || 'Erro ao fazer login');
     } finally {
       setIsLoading(false);
+      console.log('🏁 Login process finished');
     }
   };
 
