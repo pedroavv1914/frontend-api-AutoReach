@@ -17,6 +17,7 @@ import { PostComposer } from "@/components/post-composer";
 import { postsApi, PostFilters } from "@/lib/posts-api";
 import { Post } from "@/lib/types";
 import { toast } from "sonner";
+import styles from './dashboard.module.css';
 
 const chartData = [
   { name: "Dom", published: 6, engagements: 120, views: 1200, clicks: 45, shares: 12, comments: 8 },
@@ -56,6 +57,9 @@ export default function DashboardPage() {
     errors: 0
   });
 
+  // Adicionar estado para posts futuros
+  const [upcomingPosts, setUpcomingPosts] = useState<Post[]>([]);
+
   // Carregar posts
   useEffect(() => {
     loadPosts();
@@ -68,6 +72,10 @@ export default function DashboardPage() {
       const items = response.items || [];
       setPosts(items);
       
+      // Filtrar posts futuros (agendados)
+      const upcoming = items.filter(p => p.status === 'pending' && new Date(p.scheduledAt || '') > new Date());
+      setUpcomingPosts(upcoming);
+      
       // Calcular estatísticas
       const total = response.total || 0;
       const pending = items.filter(p => p.status === 'pending').length;
@@ -75,15 +83,25 @@ export default function DashboardPage() {
       const errors = items.filter(p => p.status === 'error').length;
       
       setStats({ total, pending, published, errors });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Erro ao carregar posts');
       console.error(error);
       // Definir valores padrão em caso de erro
       setPosts([]);
+      setUpcomingPosts([]);
       setStats({ total: 0, pending: 0, published: 0, errors: 0 });
     } finally {
       setLoading(false);
     }
+  };
+
+  // Adicionar funções específicas para cancelar e reenviar posts
+  const handleCancelPost = async (postId: string) => {
+    await handlePostAction(postId, 'cancel');
+  };
+
+  const handleRetryPost = async (postId: string) => {
+    await handlePostAction(postId, 'retry');
   };
 
   const handlePostAction = async (postId: string, action: 'cancel' | 'retry' | 'delete') => {
@@ -103,7 +121,7 @@ export default function DashboardPage() {
           break;
       }
       loadPosts(); // Recarregar lista
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(`Erro ao ${action === 'delete' ? 'excluir' : action === 'cancel' ? 'cancelar' : 'reenviar'} post`);
     }
   };
@@ -141,9 +159,16 @@ export default function DashboardPage() {
 
   const useCountUp = (to: number, durationMs = 1200) => {
     const [value, setValue] = useState(0);
+    const [hasAnimated, setHasAnimated] = useState(false);
+    
     useEffect(() => {
       if (to === 0) {
         setValue(0);
+        return;
+      }
+      
+      // Evitar re-animação se já animou para este valor
+      if (hasAnimated && value === to) {
         return;
       }
       
@@ -151,12 +176,19 @@ export default function DashboardPage() {
       const start = performance.now();
       const step = (now: number) => {
         const t = Math.min(1, (now - start) / durationMs);
-        setValue(Math.floor(to * (0.5 - Math.cos(Math.PI * t) / 2))); // easeInOut
-        if (t < 1) raf = requestAnimationFrame(step);
+        const newValue = Math.floor(to * (0.5 - Math.cos(Math.PI * t) / 2)); // easeInOut
+        setValue(newValue);
+        
+        if (t < 1) {
+          raf = requestAnimationFrame(step);
+        } else {
+          setHasAnimated(true);
+        }
       };
       raf = requestAnimationFrame(step);
       return () => cancelAnimationFrame(raf);
-    }, [to, durationMs]);
+    }, [to, durationMs]); // Removido hasAnimated e value das dependências
+    
     return value;
   };
 
@@ -277,40 +309,38 @@ export default function DashboardPage() {
     }
   ], [pendingCount, publishedCount, engagementsCount, viewsCount, errorsCount]);
   return (
-    <div className="p-0">
+    <div className={styles.dashboard}>
       {/* Hero Section com Gradiente */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20">
+      <div className={styles.heroSection}>
         {/* Elementos decorativos animados */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-blob"></div>
-          <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
-        </div>
+        <div className={styles.blob1}></div>
+        <div className={styles.blob2}></div>
+        <div className={styles.blob3}></div>
         
-        <div className="relative w-full px-8 lg:px-12 xl:px-16 2xl:px-24 py-12">
-          <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
-            <div className="flex-1 animate-fade-in">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
-                  <BarChart3 className="h-6 w-6 text-white" />
+        <div className={styles.heroContent}>
+          <div className={styles.heroGrid}>
+            <div className={styles.heroText}>
+              <div className={styles.heroHeader}>
+                <div className={styles.iconContainer}>
+                  <BarChart3 className={styles.heroIcon} />
                 </div>
-                <Badge variant="secondary" className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
+                <Badge variant="secondary" className={styles.heroBadge}>
                   <Sparkles className="h-3 w-3 mr-1" />
                   Dashboard
                 </Badge>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent mb-3">
+              <h1 className={styles.heroTitle}>
                 Bem-vindo de volta!
               </h1>
-              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
+              <p className={styles.heroDescription}>
                 Acompanhe sua performance, publique com confiança e gerencie suas contas sociais em um só lugar.
               </p>
             </div>
-            <div className="flex items-center gap-3 animate-slide-up">
+            <div className={styles.heroActions}>
               <Button 
                 asChild 
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className={styles.primaryButton}
               >
                 <a href="/posts/new">
                   <PlusCircle className="h-5 w-5 mr-2" />
@@ -321,7 +351,7 @@ export default function DashboardPage() {
                 asChild 
                 variant="outline" 
                 size="lg"
-                className="bg-white/80 backdrop-blur-sm border-white/20 hover:bg-white/90 shadow-lg hover:shadow-xl transition-all duration-300"
+                className={styles.secondaryButton}
               >
                 <a href="/accounts">
                   <Users className="h-5 w-5 mr-2" />
@@ -333,57 +363,43 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="w-full px-8 lg:px-12 xl:px-16 2xl:px-24 py-6 space-y-6">
+      <div className={styles.mainContent}>
         {/* KPI Cards Modernos */}
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className={styles.kpiGrid}>
           {kpiData.map((kpi, index) => {
             const IconComponent = kpi.icon;
-            const gradientClasses = {
-              blue: 'from-blue-500/10 to-blue-600/5 border-blue-200/30',
-              emerald: 'from-emerald-500/10 to-emerald-600/5 border-emerald-200/30',
-              violet: 'from-violet-500/10 to-violet-600/5 border-violet-200/30',
-              amber: 'from-amber-500/10 to-amber-600/5 border-amber-200/30',
-              red: 'from-red-500/10 to-red-600/5 border-red-200/30'
-            };
-            const iconBgClasses = {
-              blue: 'bg-gradient-to-br from-blue-500 to-blue-600',
-              emerald: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
-              violet: 'bg-gradient-to-br from-violet-500 to-violet-600',
-              amber: 'bg-gradient-to-br from-amber-500 to-amber-600',
-              red: 'bg-gradient-to-br from-red-500 to-red-600'
-            };
             
             return (
               <Card 
                 key={index} 
-                className={`relative overflow-hidden bg-gradient-to-br ${gradientClasses[kpi.color as keyof typeof gradientClasses]} backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:shadow-${kpi.color}-500/10 hover:scale-105 group animate-fade-in`}
+                className={`${styles.kpiCard} ${styles[`kpiCard${kpi.color.charAt(0).toUpperCase() + kpi.color.slice(1)}`]}`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Efeito de brilho no hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                <div className={styles.kpiCardShine}></div>
                 
-                <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                <CardHeader className={styles.kpiCardHeader}>
+                  <CardTitle className={styles.kpiCardTitle}>
                     {kpi.title}
                   </CardTitle>
-                  <div className={`p-2.5 rounded-xl ${iconBgClasses[kpi.color as keyof typeof iconBgClasses]} shadow-lg group-hover:shadow-xl transition-all duration-300`}>
-                    <IconComponent className="h-4 w-4 text-white" />
+                  <div className={`${styles.kpiIconContainer} ${styles[`kpiIcon${kpi.color.charAt(0).toUpperCase() + kpi.color.slice(1)}`]}`}>
+                    <IconComponent className={styles.kpiIcon} />
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="text-2xl font-bold tracking-tight">
+                <CardContent className={styles.kpiCardContent}>
+                  <div className={styles.kpiValue}>
                     {kpi.isPercentage ? `${kpi.value}%` : formatNumber(kpi.value)}
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className={`text-xs inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-medium backdrop-blur-sm ${getGrowthColor(kpi.growth)}`}>
+                  <div className={styles.kpiFooter}>
+                    <div className={`${styles.kpiGrowth} ${getGrowthColor(kpi.growth)}`}>
                       {getGrowthIcon(kpi.growth)}
                       {Math.abs(kpi.growth)}%
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className={styles.kpiDescription}>
                       {kpi.description}
                     </div>
                   </div>
-                  <div className="mt-4 h-12">
+                  <div className={styles.kpiSparkline}>
                     <Sparkline 
                       dataKey={index < 2 ? "published" : "engagements"} 
                       color={{
@@ -392,7 +408,7 @@ export default function DashboardPage() {
                         violet: "#8b5cf6",
                         amber: "#f59e0b",
                         red: "#ef4444"
-                      }[kpi.color as keyof typeof gradientClasses]} 
+                      }[kpi.color as 'blue' | 'emerald' | 'violet' | 'amber' | 'red']} 
                     />
                   </div>
                 </CardContent>
@@ -465,7 +481,7 @@ export default function DashboardPage() {
                       tickLine={false} 
                       axisLine={false}
                       tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      tickFormatter={(value) => formatNumber(value)}
+                      tickFormatter={(value: number) => formatNumber(value)}
                     />
                     <Tooltip 
                       contentStyle={{ 
@@ -475,7 +491,7 @@ export default function DashboardPage() {
                         backgroundColor: 'hsl(var(--background))',
                         color: 'hsl(var(--foreground))'
                       }} 
-                      formatter={(value: any, name: string) => [
+                      formatter={(value: number, name: string) => [
                         formatNumber(value), 
                         metricCfg[metric].label
                       ]}
@@ -512,15 +528,15 @@ export default function DashboardPage() {
           </Card>
 
           {/* Network Distribution */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2">
-                <Share2 className="h-4 w-4 text-blue-500" />
+          <Card className={styles.networkCard}>
+            <CardHeader className={styles.networkHeader}>
+              <CardTitle className={styles.networkTitle}>
+                <Target className="h-5 w-5" />
                 Distribuição por Rede
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-48">
+              <div className={styles.pieChartContainer}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -528,36 +544,31 @@ export default function DashboardPage() {
                       cx="50%"
                       cy="50%"
                       innerRadius={40}
-                      outerRadius={70}
-                      paddingAngle={2}
+                      outerRadius={80}
+                      paddingAngle={5}
                       dataKey="value"
                     >
                       {networkData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      formatter={(value: any) => [`${value}%`, 'Participação']}
-                      contentStyle={{
-                        borderRadius: 8,
-                        border: 'none',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        backgroundColor: 'hsl(var(--background))'
-                      }}
-                    />
+                    <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="space-y-2 mt-2">
+              <div className={styles.networkList}>
                 {networkData.map((network, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: network.color }}></div>
-                      <span className="text-sm font-medium">{network.name}</span>
+                  <div key={index} className={styles.networkItem}>
+                    <div className={styles.networkInfo}>
+                      <div 
+                        className={styles.networkColor}
+                        style={{ backgroundColor: network.color }}
+                      ></div>
+                      <span className={styles.networkName}>{network.name}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Progress value={network.value} className="w-16 h-2" />
-                      <span className="text-sm text-muted-foreground w-8">{network.value}%</span>
+                    <div className={styles.networkProgress}>
+                      <Progress value={network.value} className="w-16" />
+                      <span className={styles.networkPercentage}>{network.value}%</span>
                     </div>
                   </div>
                 ))}
@@ -566,142 +577,140 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Performance Insights */}
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 2xl:gap-8">
+        {/* Performance Cards */}
+        <div className={styles.performanceGrid}>
           {/* Best Times */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-emerald-500" />
+          <Card className={styles.bestTimesCard}>
+            <CardHeader className={styles.bestTimesHeader}>
+              <CardTitle className={styles.bestTimesTitle}>
+                <Clock className="h-5 w-5" />
                 Melhores Horários
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className={styles.timeSlotsList}>
                 {timeSlots.map((slot, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg border bg-gradient-to-r from-background to-accent/20">
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm font-mono font-medium">{slot.hour}</div>
-                      <div className="text-xs text-muted-foreground">{slot.posts} posts</div>
+                  <div key={index} className={styles.timeSlotItem}>
+                    <div className={styles.timeSlotInfo}>
+                      <span className={styles.timeSlotHour}>{slot.hour}</span>
+                      <span className={styles.timeSlotPosts}>{slot.posts} posts</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Progress value={slot.engagement} className="w-12 h-2" />
-                      <span className="text-sm font-medium text-emerald-600">{slot.engagement}%</span>
+                    <div className={styles.timeSlotProgress}>
+                      <Progress value={slot.engagement} className="w-16" />
+                      <span className={styles.timeSlotEngagement}>{slot.engagement}%</span>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-3 border-t">
+              <div className={styles.optimizeButton}>
                 <Button variant="outline" size="sm" className="w-full">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Otimizar Agendamentos
+                  <Zap className="h-4 w-4 mr-2" />
+                  Otimizar Horários
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Upcoming Posts */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-violet-500" />
+          <Card className={styles.upcomingPostsCard}>
+            <CardHeader className={styles.upcomingPostsHeader}>
+              <CardTitle className={styles.upcomingPostsTitle}>
+                <Calendar className="h-5 w-5" />
                 Próximos Posts
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-3 max-h-64 overflow-auto pr-1">
-                {posts && posts.length > 0 ? posts.filter(p => p.status === 'pending').slice(0, 4).map((post) => (
-                  <div key={post.id} className="flex items-start justify-between border rounded-lg p-3 transition hover:bg-accent/30 group">
-                    <div className="pr-2 flex-1">
-                      <div className="text-sm font-medium flex items-center gap-2 mb-1">
-                        <FileText className="h-3 w-3 text-violet-500" />
-                        <span className="truncate">{post.content.substring(0, 35)}...</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline" className="text-[10px] px-1 py-0">
-                          {formatDate(post.scheduledAt || post.createdAt).split(' ')[1]}
-                        </Badge>
-                        <div className="inline-flex items-center gap-1">
-                          {post.networks.slice(0, 2).map((network: string) => (
-                            <span key={network} className="px-1 py-0.5 rounded bg-secondary text-secondary-foreground text-[9px] uppercase tracking-wide">{network}</span>
-                          ))}
-                          {post.networks.length > 2 && (
-                            <span className="text-[9px] text-muted-foreground">+{post.networks.length - 2}</span>
-                          )}
+            <CardContent className={styles.upcomingPostsContent}>
+              <div className={styles.upcomingPostsList}>
+                {upcomingPosts.length > 0 ? (
+                  upcomingPosts.map((post) => (
+                    <div key={post.id} className={styles.upcomingPostItem}>
+                      <div className={styles.upcomingPostContent}>
+                        <div className={styles.upcomingPostText}>
+                          <span className={styles.upcomingPostTitle}>{post.content}</span>
+                        </div>
+                        <div className={styles.upcomingPostMeta}>
+                          <Badge variant="outline" className={styles.upcomingPostTime}>
+                            {new Date(post.scheduledAt).toLocaleString()}
+                          </Badge>
+                          <div className={styles.upcomingPostNetworks}>
+                            {post.networks.slice(0, 2).map((network) => (
+                              <Badge key={network} variant="secondary" className={styles.networkBadge}>
+                                {network}
+                              </Badge>
+                            ))}
+                            {post.networks.length > 2 && (
+                              <span className={styles.networkMore}>+{post.networks.length - 2}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className={styles.upcomingPostCancel}
+                        onClick={() => handleCancelPost(post.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => handlePostAction(post.id, 'cancel')}
-                    >
-                      ✕
-                    </Button>
-                  </div>
-                )) : (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Nenhum post agendado</p>
+                  ))
+                ) : (
+                  <div className={styles.emptyUpcomingPosts}>
+                    <Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p>Nenhum post agendado</p>
                   </div>
                 )}
               </div>
-              <div className="pt-2 border-t">
-                <Button asChild variant="outline" size="sm" className="w-full">
-                  <a href="/posts">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Ver Todos os Posts
-                  </a>
+              <div className={styles.upcomingPostsFooter}>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agendar Post
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Quick Actions */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-amber-500" />
+          <Card className={styles.quickActionsCard}>
+            <CardHeader className={styles.quickActionsHeader}>
+              <CardTitle className={styles.quickActionsTitle}>
+                <Zap className="h-5 w-5" />
                 Ações Rápidas
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid gap-2">
-                <Button className="w-full justify-start" onClick={() => setShowComposer(true)}>
+            <CardContent className={styles.quickActionsContent}>
+              <div className={styles.quickActionsList}>
+                <Button variant="outline" size="sm" className="w-full justify-start">
                   <PlusCircle className="h-4 w-4 mr-2" />
-                  Criar Post
+                  Novo Post
                 </Button>
-                <Button variant="outline" className="w-full justify-start" asChild>
-                  <a href="/analytics">
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Ver Analytics
-                  </a>
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Agendar
                 </Button>
-                <Button variant="outline" className="w-full justify-start" asChild>
-                  <a href="/accounts">
-                    <Users className="h-4 w-4 mr-2" />
-                    Gerenciar Contas
-                  </a>
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Relatórios
                 </Button>
-                <Button variant="outline" className="w-full justify-start" asChild>
-                  <a href="/settings">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configurações
-                  </a>
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configurações
                 </Button>
               </div>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Próxima publicação</span>
-                  <span className="font-medium">em 2h 15m</span>
+              <Separator className="my-4" />
+              <div className={styles.quickActionsStats}>
+                <div className={styles.quickActionsStat}>
+                  <span className={styles.quickActionsStatLabel}>Posts hoje</span>
+                  <div className={styles.quickActionsStatProgress}>
+                    <Progress value={75} className="w-12" />
+                    <span className={styles.quickActionsStatValue}>3/4</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Quota mensal</span>
-                  <div className="flex items-center gap-2">
-                    <Progress value={67} className="w-12 h-2" />
-                    <span className="font-medium">67%</span>
+                <div className={styles.quickActionsStat}>
+                  <span className={styles.quickActionsStatLabel}>Meta semanal</span>
+                  <div className={styles.quickActionsStatProgress}>
+                    <Progress value={60} className="w-12" />
+                    <span className={styles.quickActionsStatValue}>12/20</span>
                   </div>
                 </div>
               </div>
@@ -710,97 +719,66 @@ export default function DashboardPage() {
         </div>
 
         {/* Activity Feed */}
-        <div className="grid gap-6 grid-cols-1">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-blue-500" />
+        <div className={styles.activitySection}>
+          <Card className={styles.activityCard}>
+            <CardHeader className={styles.activityHeader}>
+              <CardTitle className={styles.activityTitle}>
+                <Activity className="h-5 w-5" />
                 Atividade Recente
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {[
-                  { 
-                    id: 1, 
-                    text: "Post publicado com sucesso no LinkedIn", 
-                    meta: "há 5 minutos", 
-                    type: "success",
-                    icon: CheckCircle2,
-                    network: "LinkedIn"
-                  },
-                  { 
-                    id: 2, 
-                    text: "Falha na publicação no Twitter — token expirado", 
-                    meta: "há 20 minutos", 
-                    type: "error",
-                    icon: AlertTriangle,
-                    network: "Twitter"
-                  },
-                  { 
-                    id: 3, 
-                    text: "Post reagendado para amanhã às 09:00", 
-                    meta: "há 1 hora", 
-                    type: "info",
-                    icon: Clock,
-                    network: "Instagram"
-                  },
-                  { 
-                    id: 4, 
-                    text: "Nova conta conectada: Facebook Business", 
-                    meta: "há 2 horas", 
-                    type: "success",
-                    icon: Users,
-                    network: "Facebook"
-                  },
-                  { 
-                    id: 5, 
-                    text: "Engajamento aumentou 15% esta semana", 
-                    meta: "há 3 horas", 
-                    type: "info",
-                    icon: TrendingUp,
-                    network: null
-                  }
-                ].map((activity) => {
-                  const IconComponent = activity.icon;
-                  const typeColors = {
-                    success: 'text-emerald-500 bg-emerald-100/60',
-                    error: 'text-red-500 bg-red-100/60',
-                    info: 'text-blue-500 bg-blue-100/60'
-                  };
-                  
-                  return (
-                    <div key={activity.id} className="flex items-start gap-4 p-4 rounded-lg border bg-gradient-to-r from-background to-accent/10 transition hover:bg-accent/20 group">
-                      <div className={`p-2 rounded-lg ${typeColors[activity.type as keyof typeof typeColors]}`}>
-                        <IconComponent className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium group-hover:text-foreground transition-colors">
-                          {activity.text}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-muted-foreground">{activity.meta}</span>
-                          {activity.network && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                              {activity.network}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Eye className="h-4 w-4" />
-                      </Button>
+              <div className={styles.activityList}>
+                <div className={styles.activityItem}>
+                  <div className={`${styles.activityIcon} bg-green-100 text-green-600`}>
+                    <CheckCircle2 className="h-4 w-4" />
+                  </div>
+                  <div className={styles.activityContent}>
+                    <p className={styles.activityText}>Post publicado com sucesso no LinkedIn</p>
+                    <div className={styles.activityMeta}>
+                      <span className={styles.activityTime}>há 2 minutos</span>
+                      <Badge variant="secondary" className={styles.activityNetwork}>LinkedIn</Badge>
                     </div>
-                  );
-                })}
-              </div>
-              <div className="flex items-center justify-between mt-6 pt-4 border-t">
-                <div className="text-sm text-muted-foreground">
-                  Mostrando as 5 atividades mais recentes
+                  </div>
+                  <Button variant="ghost" size="sm" className={styles.activityAction}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
                 </div>
+                <div className={styles.activityItem}>
+                  <div className={`${styles.activityIcon} bg-blue-100 text-blue-600`}>
+                    <Heart className="h-4 w-4" />
+                  </div>
+                  <div className={styles.activityContent}>
+                    <p className={styles.activityText}>Novo engajamento no Twitter</p>
+                    <div className={styles.activityMeta}>
+                      <span className={styles.activityTime}>há 5 minutos</span>
+                      <Badge variant="secondary" className={styles.activityNetwork}>Twitter</Badge>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" className={styles.activityAction}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className={styles.activityItem}>
+                  <div className={`${styles.activityIcon} bg-purple-100 text-purple-600`}>
+                    <Share2 className="h-4 w-4" />
+                  </div>
+                  <div className={styles.activityContent}>
+                    <p className={styles.activityText}>Post compartilhado no Instagram</p>
+                    <div className={styles.activityMeta}>
+                      <span className={styles.activityTime}>há 10 minutos</span>
+                      <Badge variant="secondary" className={styles.activityNetwork}>Instagram</Badge>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" className={styles.activityAction}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className={styles.activityFooter}>
+                <p className={styles.activityFooterText}>Mostrando últimas 3 atividades</p>
                 <Button variant="outline" size="sm">
-                  <Activity className="h-4 w-4 mr-2" />
-                  Ver Histórico Completo
+                  Ver todas
                 </Button>
               </div>
             </CardContent>
@@ -808,146 +786,144 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Posts */}
-        <div className="grid gap-6 grid-cols-1">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-purple-500" />
-                  Posts Recentes
+        <div className={styles.recentPostsSection}>
+          <Card className={styles.recentPostsCard}>
+            <CardHeader className={styles.recentPostsHeader}>
+              <div className={styles.recentPostsHeaderTitle}>
+                <div className={styles.recentPostsHeaderLeft}>
+                  <FileText className="h-5 w-5" />
+                  <CardTitle>Posts Recentes</CardTitle>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={loadPosts}
-                    disabled={loading}
-                  >
-                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <div className={styles.recentPostsHeaderActions}>
+                  <Button variant="outline" size="sm">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filtrar
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => setShowComposer(!showComposer)}
-                  >
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Novo Post
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                </div>
-              ) : posts.length > 0 ? (
-                <div className="space-y-4">
-                  {posts.slice(0, 4).map((post, index) => {
-                    const statusConfig = {
-                      published: { color: 'bg-emerald-500', label: 'Publicado', textColor: 'text-emerald-700' },
-                      pending: { color: 'bg-blue-500', label: 'Agendado', textColor: 'text-blue-700' },
-                      error: { color: 'bg-red-500', label: 'Erro', textColor: 'text-red-700' },
-                      canceled: { color: 'bg-gray-400', label: 'Cancelado', textColor: 'text-gray-700' }
-                    };
-                    
-                    const config = statusConfig[post.status as keyof typeof statusConfig] || statusConfig.pending;
-                    
-                    return (
-                      <div key={post.id} className="group relative p-4 rounded-lg border bg-gradient-to-r from-background to-accent/5 hover:to-accent/10 transition-all duration-200">
-                        <div className="flex items-start gap-4">
-                          <div className="flex-shrink-0">
-                            <div className={`h-3 w-3 rounded-full ${config.color} shadow-sm`} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <p className="text-sm font-medium line-clamp-2 group-hover:text-foreground transition-colors">
-                                  {post.content.substring(0, 80)}...
-                                </p>
-                                <div className="flex items-center gap-3 mt-2">
-                                  <span className="text-xs text-muted-foreground">
-                                    {formatDate(post.scheduledAt || post.createdAt)}
-                                  </span>
-                                  <div className="flex items-center gap-1">
-                                    {post.networks.slice(0, 3).map((network, i) => (
-                                      <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0">
-                                        {network}
-                                      </Badge>
-                                    ))}
-                                    {post.networks.length > 3 && (
-                                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                        +{post.networks.length - 3}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Badge variant="outline" className={`text-[10px] px-2 py-1 ${config.textColor} border-current/20`}>
-                                  {config.label}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Action buttons - show on hover */}
-                        <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-blue-100 hover:text-blue-600">
-                            <Eye className="h-3.5 w-3.5" />
-                          </Button>
-                          {post.status === 'pending' && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-7 w-7 p-0 hover:bg-red-100 hover:text-red-600"
-                              onClick={() => handlePostAction(post.id, 'cancel')}
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </Button>
-                          )}
-                          {post.status === 'error' && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-7 w-7 p-0 hover:bg-green-100 hover:text-green-600"
-                              onClick={() => handlePostAction(post.id, 'retry')}
-                            >
-                              <RefreshCw className="h-3.5 w-3.5" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Nenhum post encontrado</p>
-                  <p className="text-sm">Crie seu primeiro post clicando em "Novo Post"</p>
-                </div>
-              )}
-              
-              <div className="flex items-center justify-between mt-6 pt-4 border-t">
-                <div className="text-sm text-muted-foreground">
-                  {posts.length} posts no total
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" asChild>
-                    <a href="/posts">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Ver Todos
-                    </a>
-                  </Button>
-                  <Button size="sm" asChild>
-                    <a href="/posts/new">
-                      <PlusCircle className="h-4 w-4 mr-2" />
-                      Criar Post
-                    </a>
+                  <Button variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Atualizar
                   </Button>
                 </div>
               </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className={styles.loadingContainer}>
+                  <div className={styles.loadingSpinner}></div>
+                </div>
+              ) : (
+                <>
+                  <div className={styles.recentPostsList}>
+                    {posts.length > 0 ? (
+                      posts.slice(0, 5).map((post) => (
+                        <div key={post.id} className={styles.recentPostItem}>
+                          <div className={styles.recentPostContent}>
+                            <div className={styles.recentPostStatus}>
+                              <div 
+                                className={`${styles.recentPostStatusDot} ${
+                                  post.status === 'published' ? 'bg-green-500' :
+                                  post.status === 'pending' ? 'bg-blue-500' :
+                                  post.status === 'canceled' ? 'bg-gray-400' :
+                                  'bg-red-500'
+                                }`}
+                              ></div>
+                            </div>
+                            <div className={styles.recentPostDetails}>
+                              <div className={styles.recentPostMain}>
+                                <div className={styles.recentPostTextContainer}>
+                                  <p className={styles.recentPostText}>
+                                    {post.content}
+                                  </p>
+                                  <div className={styles.recentPostMeta}>
+                                    <span className={styles.recentPostDate}>
+                                      {new Date(post.createdAt).toLocaleDateString()}
+                                    </span>
+                                    <div className={styles.recentPostNetworks}>
+                                      {post.networks.map((network) => (
+                                        <Badge key={network} variant="outline" className={styles.recentPostNetwork}>
+                                          {network}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className={styles.recentPostStatusBadge}>
+                                  <Badge 
+                                    variant={
+                                      post.status === 'published' ? 'default' :
+                                      post.status === 'pending' ? 'secondary' :
+                                      post.status === 'canceled' ? 'outline' :
+                                      'destructive'
+                                    }
+                                    className={styles.recentPostBadge}
+                                  >
+                                    {post.status === 'published' && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                                    {post.status === 'pending' && post.scheduledAt && (
+                                      <Clock className="h-3 w-3 mr-1" />
+                                    )}
+                                    {post.status === 'error' && <AlertTriangle className="h-3 w-3 mr-1" />}
+                                    {post.status === 'published' ? 'Publicado' :
+                                     post.status === 'pending' ? 'Agendado' :
+                                     post.status === 'canceled' ? 'Cancelado' :
+                                     'Erro'}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={styles.recentPostActions}>
+                            <Button variant="ghost" size="sm" className={styles.recentPostAction}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className={styles.recentPostAction}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            {post.status === 'pending' && post.scheduledAt && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className={`${styles.recentPostAction} ${styles.recentPostActionCancel}`}
+                                onClick={() => handleCancelPost(post.id)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {post.status === 'error' && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className={`${styles.recentPostAction} ${styles.recentPostActionRetry}`}
+                                onClick={() => handleRetryPost(post.id)}
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className={styles.emptyRecentPosts}>
+                        <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                        <p>Nenhum post encontrado</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.recentPostsFooter}>
+                    <p className={styles.recentPostsFooterText}>
+                      Mostrando {Math.min(posts.length, 5)} de {posts.length} posts
+                    </p>
+                    <div className={styles.recentPostsFooterActions}>
+                      <Button variant="outline" size="sm">
+                        Ver todos
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Exportar
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -955,20 +931,20 @@ export default function DashboardPage() {
 
       {/* Post Composer Modal */}
       {showComposer && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-auto">
-            <div className="p-4 border-b flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Criar Novo Post</h2>
-              <Button
-                variant="ghost"
-                size="sm"
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Novo Post</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
                 onClick={() => setShowComposer(false)}
               >
-                ✕
+                <X className="h-4 w-4" />
               </Button>
             </div>
-            <div className="p-4">
-              <PostComposer />
+            <div className={styles.modalBody}>
+              <PostComposer onClose={() => setShowComposer(false)} />
             </div>
           </div>
         </div>
@@ -976,4 +952,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
