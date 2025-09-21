@@ -186,69 +186,81 @@ export default function Dashboard() {
 
       <div className={`${styles.kpiSection} animate-slide-in-right animate-stagger-1`}>
         <div className={styles.kpiGrid}>
-          <Card className={`${styles.kpiCard} card-entrance animate-stagger-1 hover-lift`}>
-            <CardContent className={styles.kpiContent}>
-              <div className={styles.kpiIcon}>
-                <FileText className="h-6 w-6" />
+          <div className={`${styles.kpiCard} card-entrance animate-stagger-1 hover-lift`}>
+            <div className={styles.kpiCardHeader}>
+              <h3 className={styles.kpiCardTitle}>Posts Publicados</h3>
+              <div className={styles.kpiIconContainer}>
+                <FileText className={styles.kpiIcon} />
               </div>
-              <div className={styles.kpiData}>
-                <div className={styles.kpiValue}>78</div>
-                <div className={styles.kpiLabel}>Posts Publicados</div>
-                <div className={styles.kpiChange}>
+            </div>
+            <div className={styles.kpiCardContent}>
+              <div className={styles.kpiValue}>78</div>
+              <div className={styles.kpiFooter}>
+                <div className={`${styles.kpiGrowth} ${styles.kpiGrowthPositive}`}>
                   <ArrowUpRight className="h-4 w-4" />
                   <span>+12%</span>
                 </div>
+                <div className={styles.kpiDescription}>vs. mês anterior</div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className={`${styles.kpiCard} card-entrance animate-stagger-2 hover-lift`}>
-            <CardContent className={styles.kpiContent}>
-              <div className={styles.kpiIcon}>
-                <Heart className="h-6 w-6" />
+          <div className={`${styles.kpiCard} card-entrance animate-stagger-2 hover-lift`}>
+            <div className={styles.kpiCardHeader}>
+              <h3 className={styles.kpiCardTitle}>Engajamentos</h3>
+              <div className={styles.kpiIconContainer}>
+                <Heart className={styles.kpiIcon} />
               </div>
-              <div className={styles.kpiData}>
-                <div className={styles.kpiValue}>2.4K</div>
-                <div className={styles.kpiLabel}>Engajamentos</div>
-                <div className={styles.kpiChange}>
+            </div>
+            <div className={styles.kpiCardContent}>
+              <div className={styles.kpiValue}>2.4K</div>
+              <div className={styles.kpiFooter}>
+                <div className={`${styles.kpiGrowth} ${styles.kpiGrowthPositive}`}>
                   <ArrowUpRight className="h-4 w-4" />
                   <span>+18%</span>
                 </div>
+                <div className={styles.kpiDescription}>vs. mês anterior</div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className={`${styles.kpiCard} card-entrance animate-stagger-3 hover-lift`}>
-            <CardContent className={styles.kpiContent}>
-              <div className={styles.kpiIcon}>
-                <Eye className="h-6 w-6" />
+          <div className={`${styles.kpiCard} card-entrance animate-stagger-3 hover-lift`}>
+            <div className={styles.kpiCardHeader}>
+              <h3 className={styles.kpiCardTitle}>Visualizações</h3>
+              <div className={styles.kpiIconContainer}>
+                <Eye className={styles.kpiIcon} />
               </div>
-              <div className={styles.kpiData}>
-                <div className={styles.kpiValue}>24.8K</div>
-                <div className={styles.kpiLabel}>Visualizações</div>
-                <div className={styles.kpiChange}>
+            </div>
+            <div className={styles.kpiCardContent}>
+              <div className={styles.kpiValue}>24.8K</div>
+              <div className={styles.kpiFooter}>
+                <div className={`${styles.kpiGrowth} ${styles.kpiGrowthPositive}`}>
                   <ArrowUpRight className="h-4 w-4" />
                   <span>+25%</span>
                 </div>
+                <div className={styles.kpiDescription}>vs. mês anterior</div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className={`${styles.kpiCard} card-entrance animate-stagger-4 hover-lift`}>
-            <CardContent className={styles.kpiContent}>
-              <div className={styles.kpiIcon}>
-                <TrendingUp className="h-6 w-6" />
+          <div className={`${styles.kpiCard} card-entrance animate-stagger-4 hover-lift`}>
+            <div className={styles.kpiCardHeader}>
+              <h3 className={styles.kpiCardTitle}>Taxa de Crescimento</h3>
+              <div className={styles.kpiIconContainer}>
+                <TrendingUp className={styles.kpiIcon} />
               </div>
-              <div className={styles.kpiData}>
-                <div className={styles.kpiValue}>94%</div>
-                <div className={styles.kpiLabel}>Taxa de Crescimento</div>
-                <div className={styles.kpiChange}>
+            </div>
+            <div className={styles.kpiCardContent}>
+              <div className={styles.kpiValue}>94%</div>
+              <div className={styles.kpiFooter}>
+                <div className={`${styles.kpiGrowth} ${styles.kpiGrowthPositive}`}>
                   <ArrowUpRight className="h-4 w-4" />
                   <span>+8%</span>
                 </div>
+                <div className={styles.kpiDescription}>vs. mês anterior</div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
 
