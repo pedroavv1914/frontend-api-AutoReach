@@ -117,7 +117,7 @@ export function VerticalNavbar() {
           onClick={toggleCollapsed}
           aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
         >
-          <div className={`${styles.hamburger} ${isCollapsed ? styles.hamburgerActive : ''}`}>
+          <div className={`${styles.hamburger} ${!isCollapsed ? styles.hamburgerActive : ''}`}>
             <span></span>
             <span></span>
             <span></span>
