@@ -154,8 +154,15 @@ export default function Dashboard() {
       <div className={`${styles.dashboardHeader} animate-slide-in-left`}>
         <div className={styles.headerContent}>
           <div className={styles.headerTitle}>
-            <h1 className={styles.title}>Dashboard Completo</h1>
-            <p className={styles.subtitle}>Analytics, Performance e Gestão de Redes Sociais em um só lugar</p>
+            <div className={styles.titleSection}>
+              <h1 className={styles.title}>
+                <span className={styles.titlePrimary}>Dashboard</span>
+                <span className={styles.titleSecondary}>Analytics</span>
+              </h1>
+              <p className={styles.subtitle}>
+                Insights inteligentes para impulsionar seu crescimento digital
+              </p>
+            </div>
           </div>
           <div className={styles.headerActions}>
             <Button variant="outline" className={`${styles.outlineButton} hover-scale`}>
