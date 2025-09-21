@@ -1,9 +1,11 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/app/providers";
 import { ConditionalLayout } from "@/components/conditional-layout";
+import { NavbarProvider } from "@/contexts/navbar-context";
+import type { Viewport } from "next";
 import { defaultSEO, generateStructuredData } from "@/lib/seo";
 import Script from "next/script";
 
@@ -68,9 +70,11 @@ export default function RootLayout({
         {/* Performance monitoring removed to reduce console noise */}
         
         <Providers>
-          <ConditionalLayout>
-            {children}
-          </ConditionalLayout>
+          <NavbarProvider>
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
+          </NavbarProvider>
         </Providers>
         
         <Toaster richColors position="top-right" />
