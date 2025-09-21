@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AppHeader } from "@/components/app-header";
+import { VerticalNavbar } from "@/components/vertical-navbar";
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -10,7 +10,7 @@ interface ConditionalLayoutProps {
 export function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
   
-  // Páginas que não devem mostrar o header
+  // Páginas que não devem mostrar a navbar
   const authPages = ['/login', '/register'];
   const isAuthPage = authPages.includes(pathname);
 
@@ -23,12 +23,14 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
     );
   }
 
-  // Layout padrão com header para outras páginas
+  // Layout padrão com navbar vertical para outras páginas
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <AppHeader />
-      <main className="flex-1 w-full px-6 md:px-8 xl:px-16 2xl:px-24 py-4">
-        {children}
+    <div className="relative flex min-h-screen">
+      <VerticalNavbar />
+      <main className="flex-1 ml-[280px] bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 min-h-screen">
+        <div className="p-6 md:p-8 xl:p-12">
+          {children}
+        </div>
       </main>
     </div>
   );
