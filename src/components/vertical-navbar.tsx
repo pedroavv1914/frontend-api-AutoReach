@@ -16,6 +16,7 @@ import {
   Home
 } from "lucide-react";
 import { useState } from "react";
+import { useNavbar } from "@/contexts/navbar-context";
 import styles from './vertical-navbar.module.css';
 
 interface NavItem {
@@ -95,7 +96,7 @@ const bottomItems: NavItem[] = [
 
 export function VerticalNavbar() {
   const [activeItem, setActiveItem] = useState('dashboard');
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isCollapsed, toggleCollapsed } = useNavbar();
 
   const handleItemClick = (itemId: string) => {
     setActiveItem(itemId);
@@ -113,7 +114,7 @@ export function VerticalNavbar() {
         </div>
         <button 
           className={styles.collapseButton}
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={toggleCollapsed}
           aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
         >
           <div className={`${styles.hamburger} ${isCollapsed ? styles.hamburgerActive : ''}`}>
