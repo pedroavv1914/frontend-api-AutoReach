@@ -100,15 +100,18 @@
 }
 
 .hamburgerActive span:nth-child(1) {
-  transform: rotate(45deg) translate(4px, 4px);
+  transform: rotate(45deg) translate(3px, 3px);
+  transform-origin: center;
 }
 
 .hamburgerActive span:nth-child(2) {
   opacity: 0;
+  transform: scale(0);
 }
 
 .hamburgerActive span:nth-child(3) {
-  transform: rotate(-45deg) translate(4px, -4px);
+  transform: rotate(-45deg) translate(3px, -3px);
+  transform-origin: center;
 }
 
 /* Perfil do usuário */
