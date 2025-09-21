@@ -281,7 +281,13 @@ export default function Dashboard() {
                     className={`${styles.metricButton} metric-entrance animate-stagger-1 hover-scale micro-bounce`}
                     onClick={() => setMetric(key as keyof typeof metricCfg)}
                   >
-                    {config.label}
+                    <span style={{ 
+                      color: metric === key ? '#ffffff' : '#1f2937',
+                      fontWeight: '600',
+                      display: 'block'
+                    }}>
+                      {config.label}
+                    </span>
                   </Button>
                 ))}
               </div>
@@ -301,12 +307,12 @@ export default function Dashboard() {
                       dataKey="name" 
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 12, fill: '#666' }}
+                      tick={{ fontSize: 12, fill: '#1f2937' }}
                     />
                     <YAxis 
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 12, fill: '#666' }}
+                      tick={{ fontSize: 12, fill: '#1f2937' }}
                     />
                     <Tooltip 
                       contentStyle={{
