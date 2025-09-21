@@ -18,6 +18,8 @@ import { postsApi, PostFilters } from "@/lib/posts-api";
 import { Post } from "@/lib/types";
 import { toast } from "sonner";
 import styles from './dashboard.module.css';
+import './animations.css';
+import './dashboard-improvements.css';
 
 const chartData = [
   { name: "Dom", published: 6, engagements: 120, views: 1200, clicks: 45, shares: 12, comments: 8 },
@@ -30,167 +32,72 @@ const chartData = [
 ];
 
 const networkData = [
-  { name: "LinkedIn", value: 45, color: "#0077B5" },
-  { name: "Twitter", value: 30, color: "#1DA1F2" },
-  { name: "Instagram", value: 20, color: "#E4405F" },
-  { name: "Facebook", value: 5, color: "#1877F2" },
+  { name: "Instagram", value: 45, color: "#E4405F" },
+  { name: "LinkedIn", value: 30, color: "#0077B5" },
+  { name: "Twitter", value: 25, color: "#1DA1F2" },
 ];
 
-const timeSlots = [
-  { hour: "06:00", posts: 2, engagement: 85 },
-  { hour: "09:00", posts: 8, engagement: 92 },
-  { hour: "12:00", posts: 12, engagement: 88 },
-  { hour: "15:00", posts: 15, engagement: 95 },
-  { hour: "18:00", posts: 18, engagement: 98 },
-  { hour: "21:00", posts: 10, engagement: 90 },
+const bestTimes = [
+  { time: "09:00", engagement: 85, posts: 12 },
+  { time: "12:00", engagement: 92, posts: 18 },
+  { time: "15:00", engagement: 78, posts: 15 },
+  { time: "18:00", engagement: 95, posts: 22 },
+  { time: "21:00", engagement: 88, posts: 16 },
 ];
 
-export default function DashboardPage() {
+const metricCfg = {
+  published: { label: "Posts Publicados", color: "#3b82f6" },
+  engagements: { label: "Engajamentos", color: "#10b981" },
+  views: { label: "Visualizações", color: "#f59e0b" },
+  clicks: { label: "Cliques", color: "#ef4444" },
+  shares: { label: "Compartilhamentos", color: "#8b5cf6" },
+  comments: { label: "Comentários", color: "#06b6d4" },
+};
+
+export default function Dashboard() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [showComposer, setShowComposer] = useState(false);
-  const [filters, setFilters] = useState<PostFilters>({ page: 1, pageSize: 10 });
-  const [stats, setStats] = useState({
-    total: 0,
-    pending: 0,
-    published: 0,
-    errors: 0
-  });
+  const [metric, setMetric] = useState<keyof typeof metricCfg>('published');
 
-  // Adicionar estado para posts futuros
-  const [upcomingPosts, setUpcomingPosts] = useState<Post[]>([]);
+  // Dados expandidos para analytics
+  const audienceData = [
+    { age: "18-24", value: 25, male: 12, female: 13 },
+    { age: "25-34", value: 35, male: 18, female: 17 },
+    { age: "35-44", value: 22, male: 11, female: 11 },
+    { age: "45-54", value: 12, male: 6, female: 6 },
+    { age: "55+", value: 6, male: 3, female: 3 },
+  ];
 
-  // Carregar posts
-  useEffect(() => {
-    loadPosts();
-  }, [filters]);
+  const performanceMetrics = [
+    { metric: "CTR", value: 3.2, change: 0.5, trend: "up" },
+    { metric: "CPM", value: 12.50, change: -2.1, trend: "down" },
+    { metric: "CPC", value: 0.85, change: 0.15, trend: "up" },
+    { metric: "ROAS", value: 4.2, change: 0.8, trend: "up" },
+  ];
 
-  const loadPosts = async () => {
-    try {
-      setLoading(true);
-      const response = await postsApi.list(filters);
-      const items = response.items || [];
-      setPosts(items);
-      
-      // Filtrar posts futuros (agendados)
-      const upcoming = items.filter(p => p.status === 'pending' && new Date(p.scheduledAt || '') > new Date());
-      setUpcomingPosts(upcoming);
-      
-      // Calcular estatísticas
-      const total = response.total || 0;
-      const pending = items.filter(p => p.status === 'pending').length;
-      const published = items.filter(p => p.status === 'published').length;
-      const errors = items.filter(p => p.status === 'error').length;
-      
-      setStats({ total, pending, published, errors });
-    } catch (error: unknown) {
-      toast.error('Erro ao carregar posts');
-      console.error(error);
-      // Definir valores padrão em caso de erro
-      setPosts([]);
-      setUpcomingPosts([]);
-      setStats({ total: 0, pending: 0, published: 0, errors: 0 });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const topContent = [
+    { title: "Como aumentar engajamento no Instagram", views: 15420, engagement: 8.5, shares: 245 },
+    { title: "Estratégias de LinkedIn para B2B", views: 12380, engagement: 12.3, shares: 189 },
+    { title: "Tendências do Twitter em 2024", views: 9850, engagement: 6.8, shares: 156 },
+    { title: "Marketing de conteúdo eficaz", views: 8920, engagement: 9.2, shares: 134 },
+    { title: "ROI em redes sociais", views: 7650, engagement: 11.1, shares: 98 },
+  ];
 
-  // Adicionar funções específicas para cancelar e reenviar posts
-  const handleCancelPost = async (postId: string) => {
-    await handlePostAction(postId, 'cancel');
-  };
+  const competitorData = [
+    { name: "Concorrente A", followers: 45000, engagement: 4.2, growth: 12 },
+    { name: "Concorrente B", followers: 38000, engagement: 5.8, growth: 8 },
+    { name: "Concorrente C", followers: 52000, engagement: 3.1, growth: 15 },
+    { name: "Sua Marca", followers: 41000, engagement: 6.5, growth: 18 },
+  ];
 
-  const handleRetryPost = async (postId: string) => {
-    await handlePostAction(postId, 'retry');
-  };
-
-  const handlePostAction = async (postId: string, action: 'cancel' | 'retry' | 'delete') => {
-    try {
-      switch (action) {
-        case 'cancel':
-          await postsApi.cancel(postId);
-          toast.success('Post cancelado');
-          break;
-        case 'retry':
-          await postsApi.retry(postId);
-          toast.success('Post reenviado');
-          break;
-        case 'delete':
-          await postsApi.delete(postId);
-          toast.success('Post excluído');
-          break;
-      }
-      loadPosts(); // Recarregar lista
-    } catch (error: unknown) {
-      toast.error(`Erro ao ${action === 'delete' ? 'excluir' : action === 'cancel' ? 'cancelar' : 'reenviar'} post`);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published': return 'bg-green-100 text-green-700';
-      case 'pending': return 'bg-blue-100 text-blue-700';
-      case 'error': return 'bg-red-100 text-red-700';
-      case 'canceled': return 'bg-gray-100 text-gray-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'published': return 'Publicado';
-      case 'pending': return 'Agendado';
-      case 'error': return 'Erro';
-      case 'canceled': return 'Cancelado';
-      default: return status;
-    }
-  };
-
-  const useCountUp = (to: number, durationMs = 1200) => {
-    const [value, setValue] = useState(0);
-    const [hasAnimated, setHasAnimated] = useState(false);
-    
-    useEffect(() => {
-      if (to === 0) {
-        setValue(0);
-        return;
-      }
-      
-      // Evitar re-animação se já animou para este valor
-      if (hasAnimated && value === to) {
-        return;
-      }
-      
-      let raf = 0; 
-      const start = performance.now();
-      const step = (now: number) => {
-        const t = Math.min(1, (now - start) / durationMs);
-        const newValue = Math.floor(to * (0.5 - Math.cos(Math.PI * t) / 2)); // easeInOut
-        setValue(newValue);
-        
-        if (t < 1) {
-          raf = requestAnimationFrame(step);
-        } else {
-          setHasAnimated(true);
-        }
-      };
-      raf = requestAnimationFrame(step);
-      return () => cancelAnimationFrame(raf);
-    }, [to, durationMs]); // Removido hasAnimated e value das dependências
-    
-    return value;
-  };
+  const conversionFunnel = [
+    { stage: "Impressões", value: 100000, percentage: 100 },
+    { stage: "Cliques", value: 3200, percentage: 3.2 },
+    { stage: "Visitas", value: 2800, percentage: 2.8 },
+    { stage: "Leads", value: 420, percentage: 0.42 },
+    { stage: "Conversões", value: 85, percentage: 0.085 },
+  ];
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -198,738 +105,619 @@ export default function DashboardPage() {
     return num.toString();
   };
 
-  const getGrowthIcon = (growth: number) => {
-    if (growth > 0) return <ArrowUpRight className="h-3 w-3" />;
-    if (growth < 0) return <ArrowDownRight className="h-3 w-3" />;
-    return null;
-  };
-
-  const getGrowthColor = (growth: number) => {
-    if (growth > 0) return 'text-emerald-600 bg-emerald-100/60';
-    if (growth < 0) return 'text-red-600 bg-red-100/60';
-    return 'text-gray-600 bg-gray-100/60';
-  };
-
-  const Sparkline = ({ dataKey, color }: { dataKey: string; color: string }) => {
-    const [isAnimating, setIsAnimating] = useState(false);
-    
-    return (
-      <div className="h-10 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart 
-            data={chartData} 
-            margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-          >
-            <defs>
-              <linearGradient id={`fill-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={color} stopOpacity={0.35} />
-                <stop offset="95%" stopColor={color} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <Area 
-              type="monotone" 
-              dataKey={dataKey} 
-              stroke={color} 
-              fill={`url(#fill-${dataKey})`} 
-              strokeWidth={1.5}
-              isAnimationActive={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    );
-  };
-
-  const pendingCount = useCountUp(stats.pending);
-  const publishedCount = useCountUp(stats.published);
-  const engagementsCount = useCountUp(1847);
-  const errorsCount = useCountUp(stats.errors);
-  const viewsCount = useCountUp(18470);
-  const clicksCount = useCountUp(653);
-  
-  const [metric, setMetric] = useState<'engagements' | 'published' | 'views' | 'clicks'>('engagements');
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d');
-  
-  const metricCfg: Record<typeof metric, { label: string; color: string; icon: any }> = {
-    engagements: { label: 'Engajamentos', color: '#8b5cf6', icon: Heart },
-    published: { label: 'Publicados', color: '#10b981', icon: CheckCircle2 },
-    views: { label: 'Visualizações', color: '#3b82f6', icon: Eye },
-    clicks: { label: 'Cliques', color: '#f59e0b', icon: Target },
-  };
-
-  const kpiData = useMemo(() => [
-    {
-      title: 'Posts Pendentes',
-      value: pendingCount,
-      growth: 5,
-      icon: Clock,
-      color: 'blue',
-      description: 'na fila para publicar'
-    },
-    {
-      title: 'Publicados (7d)',
-      value: publishedCount,
-      growth: 12,
-      icon: CheckCircle2,
-      color: 'emerald',
-      description: 'vs semana anterior'
-    },
-    {
-      title: 'Engajamentos (7d)',
-      value: engagementsCount,
-      growth: 7,
-      icon: Heart,
-      color: 'violet',
-      description: 'esta semana'
-    },
-    {
-      title: 'Visualizações (7d)',
-      value: viewsCount,
-      growth: 15,
-      icon: Eye,
-      color: 'blue',
-      description: 'alcance total'
-    },
-    {
-      title: 'Taxa de Cliques',
-      value: 3.54,
-      growth: -2,
-      icon: Target,
-      color: 'amber',
-      description: 'CTR médio',
-      isPercentage: true
-    },
-    {
-      title: 'Erros',
-      value: errorsCount,
-      growth: -25,
-      icon: AlertTriangle,
-      color: 'red',
-      description: 'vs período anterior'
+  const handleRetryPost = async (postId: string) => {
+    try {
+      await postsApi.retry(postId);
+      toast.success("Post reenviado com sucesso!");
+      loadPosts();
+    } catch (error) {
+      console.error('Erro ao reenviar post:', error);
+      toast.error("Erro ao reenviar post");
     }
-  ], [pendingCount, publishedCount, engagementsCount, viewsCount, errorsCount]);
+  };
+
+  const handleCancelPost = async (postId: string) => {
+    try {
+      await postsApi.cancel(postId);
+      toast.success("Post cancelado com sucesso!");
+      loadPosts();
+    } catch (error) {
+      console.error('Erro ao cancelar post:', error);
+      toast.error("Erro ao cancelar post");
+    }
+  };
+
+  const loadPosts = async () => {
+    try {
+      setLoading(true);
+      const filters: PostFilters = { pageSize: 10 };
+      const response = await postsApi.list(filters);
+      setPosts(response.items);
+    } catch (error) {
+      console.error('Erro ao carregar posts:', error);
+      toast.error("Erro ao carregar posts");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const recentPosts = useMemo(() => {
+    return posts.slice(0, 5);
+  }, [posts]);
+
   return (
-    <div className={styles.dashboard}>
-      {/* Hero Section com Gradiente */}
-      <div className={styles.heroSection}>
-        {/* Elementos decorativos animados */}
-        <div className={styles.blob1}></div>
-        <div className={styles.blob2}></div>
-        <div className={styles.blob3}></div>
-        
-        <div className={styles.heroContent}>
-          <div className={styles.heroGrid}>
-            <div className={styles.heroText}>
-              <div className={styles.heroHeader}>
-                <div className={styles.iconContainer}>
-                  <BarChart3 className={styles.heroIcon} />
-                </div>
-                <Badge variant="secondary" className={styles.heroBadge}>
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  Dashboard
-                </Badge>
-              </div>
-              <h1 className={styles.heroTitle}>
-                Bem-vindo de volta!
-              </h1>
-              <p className={styles.heroDescription}>
-                Acompanhe sua performance, publique com confiança e gerencie suas contas sociais em um só lugar.
-              </p>
-            </div>
-            <div className={styles.heroActions}>
-              <Button 
-                asChild 
-                size="lg"
-                className={styles.primaryButton}
-              >
-                <a href="/posts/new">
-                  <PlusCircle className="h-5 w-5 mr-2" />
-                  Novo Post
-                </a>
-              </Button>
-              <Button 
-                asChild 
-                variant="outline" 
-                size="lg"
-                className={styles.secondaryButton}
-              >
-                <a href="/accounts">
-                  <Users className="h-5 w-5 mr-2" />
-                  Contas
-                </a>
-              </Button>
-            </div>
+    <div className={`${styles.dashboardContainer} animate-fade-in`}>
+      <div className={`${styles.dashboardHeader} animate-slide-in-left`}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerTitle}>
+            <h1 className={styles.title}>Dashboard Completo</h1>
+            <p className={styles.subtitle}>Analytics, Performance e Gestão de Redes Sociais em um só lugar</p>
+          </div>
+          <div className={styles.headerActions}>
+            <Button variant="outline" className={`${styles.outlineButton} hover-scale`}>
+              <Filter className="h-4 w-4 mr-2" />
+              Filtros
+            </Button>
+            <Button variant="outline" className={`${styles.outlineButton} hover-scale`}>
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
+            <Button 
+              className={`${styles.primaryButton} hover-scale micro-bounce`}
+              onClick={() => setShowComposer(true)}
+            >
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Novo Post
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className={styles.mainContent}>
-        {/* KPI Cards Modernos */}
+      <div className={`${styles.kpiSection} animate-slide-in-right animate-stagger-1`}>
         <div className={styles.kpiGrid}>
-          {kpiData.map((kpi, index) => {
-            const IconComponent = kpi.icon;
-            
-            return (
-              <Card 
-                key={index} 
-                className={`${styles.kpiCard} ${styles[`kpiCard${kpi.color.charAt(0).toUpperCase() + kpi.color.slice(1)}`]}`}
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                {/* Efeito de brilho no hover */}
-                <div className={styles.kpiCardShine}></div>
-                
-                <CardHeader className={styles.kpiCardHeader}>
-                  <CardTitle className={styles.kpiCardTitle}>
-                    {kpi.title}
-                  </CardTitle>
-                  <div className={`${styles.kpiIconContainer} ${styles[`kpiIcon${kpi.color.charAt(0).toUpperCase() + kpi.color.slice(1)}`]}`}>
-                    <IconComponent className={styles.kpiIcon} />
-                  </div>
-                </CardHeader>
-                <CardContent className={styles.kpiCardContent}>
-                  <div className={styles.kpiValue}>
-                    {kpi.isPercentage ? `${kpi.value}%` : formatNumber(kpi.value)}
-                  </div>
-                  <div className={styles.kpiFooter}>
-                    <div className={`${styles.kpiGrowth} ${getGrowthColor(kpi.growth)}`}>
-                      {getGrowthIcon(kpi.growth)}
-                      {Math.abs(kpi.growth)}%
-                    </div>
-                    <div className={styles.kpiDescription}>
-                      {kpi.description}
-                    </div>
-                  </div>
-                  <div className={styles.kpiSparkline}>
-                    <Sparkline 
-                      dataKey={index < 2 ? "published" : "engagements"} 
-                      color={{
-                        blue: "#3b82f6",
-                        emerald: "#10b981",
-                        violet: "#8b5cf6",
-                        amber: "#f59e0b",
-                        red: "#ef4444"
-                      }[kpi.color as 'blue' | 'emerald' | 'violet' | 'amber' | 'red']} 
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Content Grid */}
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-4 2xl:gap-8">
-          {/* Main Chart */}
-          <Card className="lg:col-span-3">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-violet-500" />
-                    Performance Analytics
-                  </CardTitle>
-                  <Badge variant="secondary" className="text-xs">
-                    {timeRange === '7d' ? 'Últimos 7 dias' : timeRange === '30d' ? 'Últimos 30 dias' : 'Últimos 90 dias'}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="inline-flex items-center gap-1 rounded-lg border p-1 bg-white/60 dark:bg-slate-800/60">
-                    <Button variant={timeRange === '7d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('7d')}>7d</Button>
-                    <Button variant={timeRange === '30d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('30d')}>30d</Button>
-                    <Button variant={timeRange === '90d' ? 'default' : 'ghost'} size="sm" onClick={() => setTimeRange('90d')}>90d</Button>
-                  </div>
-                  <Separator orientation="vertical" className="h-6" />
-                  <div className="inline-flex items-center gap-1 rounded-lg border p-1 bg-white/60 dark:bg-slate-800/60">
-                    <Button variant={metric === 'engagements' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('engagements')}>
-                      <Heart className="h-3 w-3 mr-1" />Engajamentos
-                    </Button>
-                    <Button variant={metric === 'published' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('published')}>
-                      <CheckCircle2 className="h-3 w-3 mr-1" />Publicados
-                    </Button>
-                    <Button variant={metric === 'views' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('views')}>
-                      <Eye className="h-3 w-3 mr-1" />Views
-                    </Button>
-                    <Button variant={metric === 'clicks' ? 'default' : 'ghost'} size="sm" onClick={() => setMetric('clicks')}>
-                      <Target className="h-3 w-3 mr-1" />Cliques
-                    </Button>
-                  </div>
-                </div>
+          <Card className={`${styles.kpiCard} card-entrance animate-stagger-1 hover-lift`}>
+            <CardContent className={styles.kpiContent}>
+              <div className={styles.kpiIcon}>
+                <FileText className="h-6 w-6" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 30, bottom: 0, left: 0 }}>
-                    <defs>
-                      <linearGradient id="fillMetric" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={metricCfg[metric].color} stopOpacity={0.4} />
-                        <stop offset="95%" stopColor={metricCfg[metric].color} stopOpacity={0.05} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="name" 
-                      stroke="hsl(var(--muted-foreground))" 
-                      fontSize={12} 
-                      tickLine={false} 
-                      axisLine={false}
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis 
-                      stroke="hsl(var(--muted-foreground))" 
-                      fontSize={12} 
-                      tickLine={false} 
-                      axisLine={false}
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      tickFormatter={(value: number) => formatNumber(value)}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        borderRadius: 12, 
-                        border: 'none',
-                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                        backgroundColor: 'hsl(var(--background))',
-                        color: 'hsl(var(--foreground))'
-                      }} 
-                      formatter={(value: number, name: string) => [
-                        formatNumber(value), 
-                        metricCfg[metric].label
-                      ]}
-                      labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey={metric} 
-                      stroke={metricCfg[metric].color} 
-                      fill="url(#fillMetric)" 
-                      strokeWidth={3}
-                      dot={{ fill: metricCfg[metric].color, strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, stroke: metricCfg[metric].color, strokeWidth: 2, fill: 'white' }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: metricCfg[metric].color }}></div>
-                    <span className="text-sm font-medium">{metricCfg[metric].label}</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Total: {formatNumber(chartData.reduce((acc, curr) => acc + curr[metric], 0))}
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Network Distribution */}
-          <Card className={styles.networkCard}>
-            <CardHeader className={styles.networkHeader}>
-              <CardTitle className={styles.networkTitle}>
-                <Target className="h-5 w-5" />
-                Distribuição por Rede
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={styles.pieChartContainer}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={networkData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {networkData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className={styles.networkList}>
-                {networkData.map((network, index) => (
-                  <div key={index} className={styles.networkItem}>
-                    <div className={styles.networkInfo}>
-                      <div 
-                        className={styles.networkColor}
-                        style={{ backgroundColor: network.color }}
-                      ></div>
-                      <span className={styles.networkName}>{network.name}</span>
-                    </div>
-                    <div className={styles.networkProgress}>
-                      <Progress value={network.value} className="w-16" />
-                      <span className={styles.networkPercentage}>{network.value}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Performance Cards */}
-        <div className={styles.performanceGrid}>
-          {/* Best Times */}
-          <Card className={styles.bestTimesCard}>
-            <CardHeader className={styles.bestTimesHeader}>
-              <CardTitle className={styles.bestTimesTitle}>
-                <Clock className="h-5 w-5" />
-                Melhores Horários
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={styles.timeSlotsList}>
-                {timeSlots.map((slot, index) => (
-                  <div key={index} className={styles.timeSlotItem}>
-                    <div className={styles.timeSlotInfo}>
-                      <span className={styles.timeSlotHour}>{slot.hour}</span>
-                      <span className={styles.timeSlotPosts}>{slot.posts} posts</span>
-                    </div>
-                    <div className={styles.timeSlotProgress}>
-                      <Progress value={slot.engagement} className="w-16" />
-                      <span className={styles.timeSlotEngagement}>{slot.engagement}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className={styles.optimizeButton}>
-                <Button variant="outline" size="sm" className="w-full">
-                  <Zap className="h-4 w-4 mr-2" />
-                  Otimizar Horários
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Upcoming Posts */}
-          <Card className={styles.upcomingPostsCard}>
-            <CardHeader className={styles.upcomingPostsHeader}>
-              <CardTitle className={styles.upcomingPostsTitle}>
-                <Calendar className="h-5 w-5" />
-                Próximos Posts
-              </CardTitle>
-            </CardHeader>
-            <CardContent className={styles.upcomingPostsContent}>
-              <div className={styles.upcomingPostsList}>
-                {upcomingPosts.length > 0 ? (
-                  upcomingPosts.map((post) => (
-                    <div key={post.id} className={styles.upcomingPostItem}>
-                      <div className={styles.upcomingPostContent}>
-                        <div className={styles.upcomingPostText}>
-                          <span className={styles.upcomingPostTitle}>{post.content}</span>
-                        </div>
-                        <div className={styles.upcomingPostMeta}>
-                          <Badge variant="outline" className={styles.upcomingPostTime}>
-                            {new Date(post.scheduledAt).toLocaleString()}
-                          </Badge>
-                          <div className={styles.upcomingPostNetworks}>
-                            {post.networks.slice(0, 2).map((network) => (
-                              <Badge key={network} variant="secondary" className={styles.networkBadge}>
-                                {network}
-                              </Badge>
-                            ))}
-                            {post.networks.length > 2 && (
-                              <span className={styles.networkMore}>+{post.networks.length - 2}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className={styles.upcomingPostCancel}
-                        onClick={() => handleCancelPost(post.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))
-                ) : (
-                  <div className={styles.emptyUpcomingPosts}>
-                    <Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p>Nenhum post agendado</p>
-                  </div>
-                )}
-              </div>
-              <div className={styles.upcomingPostsFooter}>
-                <Button variant="outline" size="sm" className="w-full">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Agendar Post
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card className={styles.quickActionsCard}>
-            <CardHeader className={styles.quickActionsHeader}>
-              <CardTitle className={styles.quickActionsTitle}>
-                <Zap className="h-5 w-5" />
-                Ações Rápidas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className={styles.quickActionsContent}>
-              <div className={styles.quickActionsList}>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Novo Post
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Agendar
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Relatórios
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Configurações
-                </Button>
-              </div>
-              <Separator className="my-4" />
-              <div className={styles.quickActionsStats}>
-                <div className={styles.quickActionsStat}>
-                  <span className={styles.quickActionsStatLabel}>Posts hoje</span>
-                  <div className={styles.quickActionsStatProgress}>
-                    <Progress value={75} className="w-12" />
-                    <span className={styles.quickActionsStatValue}>3/4</span>
-                  </div>
-                </div>
-                <div className={styles.quickActionsStat}>
-                  <span className={styles.quickActionsStatLabel}>Meta semanal</span>
-                  <div className={styles.quickActionsStatProgress}>
-                    <Progress value={60} className="w-12" />
-                    <span className={styles.quickActionsStatValue}>12/20</span>
-                  </div>
+              <div className={styles.kpiData}>
+                <div className={styles.kpiValue}>78</div>
+                <div className={styles.kpiLabel}>Posts Publicados</div>
+                <div className={styles.kpiChange}>
+                  <ArrowUpRight className="h-4 w-4" />
+                  <span>+12%</span>
                 </div>
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Activity Feed */}
-        <div className={styles.activitySection}>
-          <Card className={styles.activityCard}>
-            <CardHeader className={styles.activityHeader}>
-              <CardTitle className={styles.activityTitle}>
-                <Activity className="h-5 w-5" />
-                Atividade Recente
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={styles.activityList}>
-                <div className={styles.activityItem}>
-                  <div className={`${styles.activityIcon} bg-green-100 text-green-600`}>
-                    <CheckCircle2 className="h-4 w-4" />
-                  </div>
-                  <div className={styles.activityContent}>
-                    <p className={styles.activityText}>Post publicado com sucesso no LinkedIn</p>
-                    <div className={styles.activityMeta}>
-                      <span className={styles.activityTime}>há 2 minutos</span>
-                      <Badge variant="secondary" className={styles.activityNetwork}>LinkedIn</Badge>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className={styles.activityAction}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className={styles.activityItem}>
-                  <div className={`${styles.activityIcon} bg-blue-100 text-blue-600`}>
-                    <Heart className="h-4 w-4" />
-                  </div>
-                  <div className={styles.activityContent}>
-                    <p className={styles.activityText}>Novo engajamento no Twitter</p>
-                    <div className={styles.activityMeta}>
-                      <span className={styles.activityTime}>há 5 minutos</span>
-                      <Badge variant="secondary" className={styles.activityNetwork}>Twitter</Badge>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className={styles.activityAction}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className={styles.activityItem}>
-                  <div className={`${styles.activityIcon} bg-purple-100 text-purple-600`}>
-                    <Share2 className="h-4 w-4" />
-                  </div>
-                  <div className={styles.activityContent}>
-                    <p className={styles.activityText}>Post compartilhado no Instagram</p>
-                    <div className={styles.activityMeta}>
-                      <span className={styles.activityTime}>há 10 minutos</span>
-                      <Badge variant="secondary" className={styles.activityNetwork}>Instagram</Badge>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className={styles.activityAction}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
+          <Card className={`${styles.kpiCard} card-entrance animate-stagger-2 hover-lift`}>
+            <CardContent className={styles.kpiContent}>
+              <div className={styles.kpiIcon}>
+                <Heart className="h-6 w-6" />
               </div>
-              <div className={styles.activityFooter}>
-                <p className={styles.activityFooterText}>Mostrando últimas 3 atividades</p>
-                <Button variant="outline" size="sm">
-                  Ver todas
-                </Button>
+              <div className={styles.kpiData}>
+                <div className={styles.kpiValue}>2.4K</div>
+                <div className={styles.kpiLabel}>Engajamentos</div>
+                <div className={styles.kpiChange}>
+                  <ArrowUpRight className="h-4 w-4" />
+                  <span>+18%</span>
+                </div>
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Recent Posts */}
-        <div className={styles.recentPostsSection}>
-          <Card className={styles.recentPostsCard}>
-            <CardHeader className={styles.recentPostsHeader}>
-              <div className={styles.recentPostsHeaderTitle}>
-                <div className={styles.recentPostsHeaderLeft}>
-                  <FileText className="h-5 w-5" />
-                  <CardTitle>Posts Recentes</CardTitle>
-                </div>
-                <div className={styles.recentPostsHeaderActions}>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filtrar
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Atualizar
-                  </Button>
+          <Card className={`${styles.kpiCard} card-entrance animate-stagger-3 hover-lift`}>
+            <CardContent className={styles.kpiContent}>
+              <div className={styles.kpiIcon}>
+                <Eye className="h-6 w-6" />
+              </div>
+              <div className={styles.kpiData}>
+                <div className={styles.kpiValue}>24.8K</div>
+                <div className={styles.kpiLabel}>Visualizações</div>
+                <div className={styles.kpiChange}>
+                  <ArrowUpRight className="h-4 w-4" />
+                  <span>+25%</span>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className={styles.loadingContainer}>
-                  <div className={styles.loadingSpinner}></div>
+            </CardContent>
+          </Card>
+
+          <Card className={`${styles.kpiCard} card-entrance animate-stagger-4 hover-lift`}>
+            <CardContent className={styles.kpiContent}>
+              <div className={styles.kpiIcon}>
+                <TrendingUp className="h-6 w-6" />
+              </div>
+              <div className={styles.kpiData}>
+                <div className={styles.kpiValue}>94%</div>
+                <div className={styles.kpiLabel}>Taxa de Crescimento</div>
+                <div className={styles.kpiChange}>
+                  <ArrowUpRight className="h-4 w-4" />
+                  <span>+8%</span>
                 </div>
-              ) : (
-                <>
-                  <div className={styles.recentPostsList}>
-                    {posts.length > 0 ? (
-                      posts.slice(0, 5).map((post) => (
-                        <div key={post.id} className={styles.recentPostItem}>
-                          <div className={styles.recentPostContent}>
-                            <div className={styles.recentPostStatus}>
-                              <div 
-                                className={`${styles.recentPostStatusDot} ${
-                                  post.status === 'published' ? 'bg-green-500' :
-                                  post.status === 'pending' ? 'bg-blue-500' :
-                                  post.status === 'canceled' ? 'bg-gray-400' :
-                                  'bg-red-500'
-                                }`}
-                              ></div>
-                            </div>
-                            <div className={styles.recentPostDetails}>
-                              <div className={styles.recentPostMain}>
-                                <div className={styles.recentPostTextContainer}>
-                                  <p className={styles.recentPostText}>
-                                    {post.content}
-                                  </p>
-                                  <div className={styles.recentPostMeta}>
-                                    <span className={styles.recentPostDate}>
-                                      {new Date(post.createdAt).toLocaleDateString()}
-                                    </span>
-                                    <div className={styles.recentPostNetworks}>
-                                      {post.networks.map((network) => (
-                                        <Badge key={network} variant="outline" className={styles.recentPostNetwork}>
-                                          {network}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className={styles.recentPostStatusBadge}>
-                                  <Badge 
-                                    variant={
-                                      post.status === 'published' ? 'default' :
-                                      post.status === 'pending' ? 'secondary' :
-                                      post.status === 'canceled' ? 'outline' :
-                                      'destructive'
-                                    }
-                                    className={styles.recentPostBadge}
-                                  >
-                                    {post.status === 'published' && <CheckCircle2 className="h-3 w-3 mr-1" />}
-                                    {post.status === 'pending' && post.scheduledAt && (
-                                      <Clock className="h-3 w-3 mr-1" />
-                                    )}
-                                    {post.status === 'error' && <AlertTriangle className="h-3 w-3 mr-1" />}
-                                    {post.status === 'published' ? 'Publicado' :
-                                     post.status === 'pending' ? 'Agendado' :
-                                     post.status === 'canceled' ? 'Cancelado' :
-                                     'Erro'}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className={styles.recentPostActions}>
-                            <Button variant="ghost" size="sm" className={styles.recentPostAction}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className={styles.recentPostAction}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            {post.status === 'pending' && post.scheduledAt && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className={`${styles.recentPostAction} ${styles.recentPostActionCancel}`}
-                                onClick={() => handleCancelPost(post.id)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            )}
-                            {post.status === 'error' && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className={`${styles.recentPostAction} ${styles.recentPostActionRetry}`}
-                                onClick={() => handleRetryPost(post.id)}
-                              >
-                                <RefreshCw className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className={styles.emptyRecentPosts}>
-                        <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                        <p>Nenhum post encontrado</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className={styles.recentPostsFooter}>
-                    <p className={styles.recentPostsFooterText}>
-                      Mostrando {Math.min(posts.length, 5)} de {posts.length} posts
-                    </p>
-                    <div className={styles.recentPostsFooterActions}>
-                      <Button variant="outline" size="sm">
-                        Ver todos
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4 mr-2" />
-                        Exportar
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              )}
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* Post Composer Modal */}
+      <div className={`${styles.analyticsSection} animate-fade-in animate-stagger-2`}>
+        <div className={styles.analyticsGrid}>
+          <Card className={`${styles.mainAnalyticsCard} chart-entrance animate-stagger-1`}>
+            <CardHeader className={styles.analyticsHeader}>
+              <CardTitle className={styles.analyticsTitle}>
+                <Activity className="h-5 w-5" />
+                Performance Overview
+              </CardTitle>
+              <div className={styles.metricSelector}>
+                {Object.entries(metricCfg).map(([key, config]) => (
+                  <Button
+                    key={key}
+                    variant={metric === key ? "default" : "outline"}
+                    size="sm"
+                    className={`${styles.metricButton} metric-entrance animate-stagger-1 hover-scale micro-bounce`}
+                    onClick={() => setMetric(key as keyof typeof metricCfg)}
+                  >
+                    {config.label}
+                  </Button>
+                ))}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className={`${styles.chartContainer} chart-entrance animate-stagger-2`}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={metricCfg[metric].color} stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor={metricCfg[metric].color} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#666' }}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#666' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey={metric}
+                      stroke={metricCfg[metric].color}
+                      strokeWidth={2}
+                      fillOpacity={1}
+                      fill="url(#colorMetric)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className={styles.sideAnalytics}>
+            <Card className={`${styles.networkCard} animate-slide-in-right card-entrance animate-stagger-2 hover-lift`}>
+              <CardHeader className={styles.networkHeader}>
+                <CardTitle className={styles.networkTitle}>
+                  <Target className="h-5 w-5" />
+                  Distribuição por Rede
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={styles.pieChartContainer}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={networkData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {networkData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className={styles.networkLegend}>
+                  {networkData.map((network) => (
+                    <div key={network.name} className={styles.networkLegendItem}>
+                      <div 
+                        className={styles.networkLegendColor}
+                        style={{ backgroundColor: network.color }}
+                      ></div>
+                      <span className={styles.networkLegendLabel}>{network.name}</span>
+                      <span className={styles.networkLegendValue}>{network.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className={`${styles.timesCard} card-entrance animate-stagger-3 hover-lift`}>
+              <CardHeader className={styles.timesHeader}>
+                <CardTitle className={styles.timesTitle}>
+                  <Clock className="h-5 w-5" />
+                  Melhores Horários
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={styles.timesList}>
+                  {bestTimes.map((time) => (
+                    <div key={time.time} className={styles.timeSlot}>
+                      <div className={styles.timeInfo}>
+                        <span className={styles.timeValue}>{time.time}</span>
+                        <span className={styles.timeEngagement}>{time.engagement}% engajamento</span>
+                      </div>
+                      <div className={styles.timeStats}>
+                        <span className={styles.timePosts}>{time.posts} posts</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Nova seção de Analytics Detalhados */}
+        <div className={`${styles.detailedAnalyticsSection} animate-fade-in animate-stagger-3`}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>
+              <BarChart3 className="h-6 w-6" />
+              Analytics Detalhados
+            </h2>
+          </div>
+          
+          <div className={styles.analyticsDetailGrid}>
+            {/* Audiência */}
+            <Card className={`${styles.audienceCard} card-entrance animate-stagger-1 hover-lift`}>
+              <CardHeader>
+                <CardTitle className={styles.cardTitle}>
+                  <Users className="h-5 w-5" />
+                  Demografia da Audiência
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={styles.audienceChart}>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={audienceData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="age" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip />
+                      <Bar dataKey="male" stackId="a" fill="#3b82f6" />
+                      <Bar dataKey="female" stackId="a" fill="#ec4899" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className={styles.audienceLegend}>
+                  <div className={styles.legendItem}>
+                    <div className={styles.legendColor} style={{ backgroundColor: '#3b82f6' }}></div>
+                    <span>Masculino</span>
+                  </div>
+                  <div className={styles.legendItem}>
+                    <div className={styles.legendColor} style={{ backgroundColor: '#ec4899' }}></div>
+                    <span>Feminino</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Top Content */}
+            <Card className={`${styles.topContentCard} card-entrance animate-stagger-2 hover-lift`}>
+              <CardHeader>
+                <CardTitle className={styles.cardTitle}>
+                  <TrendingUp className="h-5 w-5" />
+                  Conteúdo com Melhor Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={styles.topContentList}>
+                  {topContent.map((content, index) => (
+                    <div key={index} className={styles.topContentItem}>
+                      <div className={styles.contentRank}>{index + 1}</div>
+                      <div className={styles.contentInfo}>
+                        <h4 className={styles.contentTitle}>{content.title}</h4>
+                        <div className={styles.contentStats}>
+                          <span className={styles.contentStat}>
+                            <Eye className="h-4 w-4" />
+                            {formatNumber(content.views)}
+                          </span>
+                          <span className={styles.contentStat}>
+                            <Heart className="h-4 w-4" />
+                            {content.engagement}%
+                          </span>
+                          <span className={styles.contentStat}>
+                            <Share2 className="h-4 w-4" />
+                            {content.shares}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Análise Competitiva */}
+            <Card className={`${styles.competitorCard} card-entrance animate-stagger-3 hover-lift`}>
+              <CardHeader>
+                <CardTitle className={styles.cardTitle}>
+                  <Target className="h-5 w-5" />
+                  Análise Competitiva
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={styles.competitorList}>
+                  {competitorData.map((competitor, index) => (
+                    <div key={index} className={`${styles.competitorItem} ${competitor.name === 'Sua Marca' ? styles.yourBrand : ''}`}>
+                      <div className={styles.competitorName}>{competitor.name}</div>
+                      <div className={styles.competitorStats}>
+                        <div className={styles.competitorStat}>
+                          <span className={styles.statLabel}>Seguidores</span>
+                          <span className={styles.statValue}>{formatNumber(competitor.followers)}</span>
+                        </div>
+                        <div className={styles.competitorStat}>
+                          <span className={styles.statLabel}>Engajamento</span>
+                          <span className={styles.statValue}>{competitor.engagement}%</span>
+                        </div>
+                        <div className={styles.competitorStat}>
+                          <span className={styles.statLabel}>Crescimento</span>
+                          <span className={`${styles.statValue} ${styles.growthValue}`}>
+                            <ArrowUpRight className="h-4 w-4" />
+                            {competitor.growth}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Nova seção de Performance Metrics */}
+        <div className={`${styles.performanceSection} animate-fade-in animate-stagger-4`}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>
+              <Zap className="h-6 w-6" />
+              Métricas de Performance
+            </h2>
+          </div>
+          
+          <div className={styles.performanceGrid}>
+            {/* KPIs de Performance */}
+            <div className={styles.performanceKpis}>
+              {performanceMetrics.map((metric, index) => (
+                <Card key={index} className={`${styles.performanceKpiCard} card-entrance animate-stagger-${index + 1} hover-lift`}>
+                  <CardContent className={styles.performanceKpiContent}>
+                    <div className={styles.kpiHeader}>
+                      <span className={styles.kpiMetricName}>{metric.metric}</span>
+                      <div className={`${styles.kpiTrend} ${metric.trend === 'up' ? styles.trendUp : styles.trendDown}`}>
+                        {metric.trend === 'up' ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+                        {Math.abs(metric.change)}
+                      </div>
+                    </div>
+                    <div className={styles.kpiValue}>
+                      {metric.metric === 'CPM' || metric.metric === 'CPC' ? '$' : ''}{metric.value}
+                      {metric.metric === 'CTR' ? '%' : ''}
+                      {metric.metric === 'ROAS' ? 'x' : ''}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Funil de Conversão */}
+            <Card className={`${styles.conversionFunnelCard} card-entrance animate-stagger-5 hover-lift`}>
+              <CardHeader>
+                <CardTitle className={styles.cardTitle}>
+                  <Activity className="h-5 w-5" />
+                  Funil de Conversão
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={styles.funnelContainer}>
+                  {conversionFunnel.map((stage, index) => (
+                    <div key={index} className={styles.funnelStage}>
+                      <div className={styles.funnelStageInfo}>
+                        <span className={styles.funnelStageName}>{stage.stage}</span>
+                        <span className={styles.funnelStageValue}>{formatNumber(stage.value)}</span>
+                      </div>
+                      <div className={styles.funnelBar}>
+                        <div 
+                          className={styles.funnelBarFill}
+                          style={{ width: `${stage.percentage * 10}%` }}
+                        ></div>
+                      </div>
+                      <span className={styles.funnelStagePercentage}>{stage.percentage}%</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <div className={`${styles.quickActionsSection} animate-fade-in animate-stagger-3`}>
+          <div className={styles.quickActionsHeader}>
+            <h3 className={styles.quickActionsTitle}>Ações Rápidas</h3>
+          </div>
+          <div className={styles.quickActionsGrid}>
+            <Button className={`${styles.actionCard} card-entrance animate-stagger-1 hover-lift micro-bounce`}>
+              <PlusCircle className="h-6 w-6 mb-2" />
+              <span>Criar Post</span>
+            </Button>
+            <Button className={`${styles.actionCard} card-entrance animate-stagger-2 hover-lift micro-bounce`}>
+              <Calendar className="h-6 w-6 mb-2" />
+              <span>Agendar Posts</span>
+            </Button>
+            <Button className={`${styles.actionCard} card-entrance animate-stagger-3 hover-lift micro-bounce`}>
+              <BarChart3 className="h-6 w-6 mb-2" />
+              <span>Ver Relatórios</span>
+            </Button>
+            <Button className={`${styles.actionCard} card-entrance animate-stagger-4 hover-lift micro-bounce`}>
+              <Settings className="h-6 w-6 mb-2" />
+              <span>Configurações</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-4 2xl:gap-8">
+        <div className="lg:col-span-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: metricCfg[metric].color }}></div>
+                  <span className="text-sm font-medium">{metricCfg[metric].label}</span>
+                  <div className="text-sm text-muted-foreground">
+                    Total: {formatNumber(chartData.reduce((acc, curr) => acc + curr[metric], 0))}
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className={`${styles.outlineButton} ${styles.buttonSm}`}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
+
+      <Card className={styles.recentPostsCard}>
+        <CardHeader className={styles.recentPostsHeader}>
+          <CardTitle className={styles.recentPostsTitle}>
+            <FileText className="h-5 w-5" />
+            Posts Recentes
+          </CardTitle>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className={`${styles.outlineButton} ${styles.buttonSm}`}
+            onClick={() => setShowComposer(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Post
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className={styles.loadingState}>
+              <div className={styles.loadingSpinner}></div>
+              <p>Carregando posts...</p>
+            </div>
+          ) : (
+            <>
+              <div className={styles.recentPostsList}>
+                {recentPosts.length > 0 ? (
+                  recentPosts.map((post) => (
+                    <div key={post.id} className={styles.recentPostItem}>
+                      <div className={styles.recentPostContent}>
+                        <div className={styles.recentPostHeader}>
+                          <h4 className={styles.recentPostTitle}>{post.content.substring(0, 50)}...</h4>
+                          <div className={styles.recentPostMeta}>
+                            <Badge 
+                              className={`${
+                                post.status === 'published' ? styles.publishedBadge :
+                                post.status === 'pending' ? styles.pendingBadge :
+                                post.status === 'error' ? styles.errorBadge :
+                                styles.canceledBadge
+                              } ${styles.recentPostBadge}`}
+                            >
+                              {post.status === 'published' && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                              {post.status === 'pending' && post.scheduledAt && (
+                                <Clock className="h-3 w-3 mr-1" />
+                              )}
+                              {post.status === 'error' && <AlertTriangle className="h-3 w-3 mr-1" />}
+                              {post.status === 'published' ? 'Publicado' :
+                               post.status === 'pending' ? 'Agendado' :
+                               post.status === 'canceled' ? 'Cancelado' :
+                               'Erro'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={styles.recentPostActions}>
+                        <Button variant="ghost" size="sm" className={`${styles.ghostButton} ${styles.buttonSm} ${styles.recentPostAction}`}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className={`${styles.ghostButton} ${styles.buttonSm} ${styles.recentPostAction}`}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        {post.status === 'pending' && post.scheduledAt && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className={`${styles.ghostButton} ${styles.buttonSm} ${styles.recentPostAction} ${styles.recentPostActionCancel}`}
+                            onClick={() => handleCancelPost(post.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {post.status === 'error' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className={`${styles.ghostButton} ${styles.buttonSm} ${styles.recentPostAction} ${styles.recentPostActionRetry}`}
+                            onClick={() => handleRetryPost(post.id)}
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.emptyRecentPosts}>
+                    <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p>Nenhum post encontrado</p>
+                  </div>
+                )}
+              </div>
+              <div className={styles.recentPostsFooter}>
+                <p className={styles.recentPostsFooterText}>
+                  Mostrando {Math.min(posts.length, 5)} de {posts.length} posts
+                </p>
+                <div className={styles.recentPostsFooterActions}>
+                  <Button variant="outline" size="sm" className={`${styles.outlineButton} ${styles.buttonSm}`}>
+                    Ver todos
+                  </Button>
+                  <Button variant="outline" size="sm" className={`${styles.outlineButton} ${styles.buttonSm}`}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
       {showComposer && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
@@ -938,6 +726,7 @@ export default function DashboardPage() {
               <Button 
                 variant="ghost" 
                 size="sm" 
+                className={`${styles.ghostButton} ${styles.buttonSm}`}
                 onClick={() => setShowComposer(false)}
               >
                 <X className="h-4 w-4" />
