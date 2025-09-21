@@ -1,7 +1,7 @@
-/* Dashboard Header Improvements */
+/* Dashboard Header Improvements - Nova Abordagem Minimalista */
 .dashboardHeader {
-  margin-bottom: 2.5rem;
-  padding-bottom: 1.5rem;
+  margin-bottom: 4rem;
+  padding-bottom: 2rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 }
 
@@ -9,40 +9,87 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 4rem;
   flex-wrap: wrap;
+  padding: 0 0.5rem;
 }
 
 .headerTitle {
   flex: 1;
   min-width: 300px;
+  margin-bottom: 2.5rem;
+}
+
+/* Nova Seção do Título - Minimalista */
+.titleSection {
+  max-width: 800px;
 }
 
 .title {
-  font-size: 2.5rem;
-  font-weight: 900;
-  margin-bottom: 0.75rem;
-  background: linear-gradient(135deg, #1e40af, #3b82f6, #6366f1, #8b5cf6);
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  display: flex;
+  flex-direction: column;
+  gap: -0.5rem;
+}
+
+.titlePrimary {
+  color: #1e293b;
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
+}
+
+.titleSecondary {
+  color: #64748b;
+  font-size: 2.25rem;
+  font-weight: 300;
+  margin-top: -0.5rem;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
 }
 
 .subtitle {
   font-size: 1.125rem;
-  color: #475569;
-  font-weight: 500;
+  color: #64748b;
+  font-weight: 400;
   line-height: 1.6;
-  max-width: 600px;
+  max-width: 500px;
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2.5rem;
+  }
+  
+  .titlePrimary {
+    font-size: 2.5rem;
+  }
+  
+  .titleSecondary {
+    font-size: 1.75rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
 }
 
 .headerActions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   flex-wrap: wrap;
   align-items: flex-start;
+  margin-top: 4rem !important;
 }
 
 /* Typography Improvements */
@@ -81,10 +128,10 @@
 
 /* Enhanced Color Scheme */
 .kpiValue {
-  font-size: 2.25rem;
+  font-size: 2.5rem;
   font-weight: 900;
   color: #0f172a;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   line-height: 1;
   letter-spacing: -0.025em;
 }
@@ -93,7 +140,7 @@
   font-size: 0.875rem;
   color: #475569;
   font-weight: 600;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -101,40 +148,41 @@
 .kpiChange {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   font-size: 0.8rem;
   font-weight: 700;
   color: #059669;
   text-transform: uppercase;
   letter-spacing: 0.025em;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
 }
 
 /* Responsive KPI Improvements */
 @media (max-width: 768px) {
   .kpiSection {
-    padding: 0 0.25rem;
-    margin-bottom: 3rem;
+    padding: 0 0.5rem;
+    margin-bottom: 4rem;
+    margin-top: 2.5rem;
   }
   
   .kpiGrid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 2rem;
+    margin-bottom: 3rem;
   }
   
   .kpiContent {
-    padding: 1.5rem;
-    gap: 1.25rem;
+    padding: 2rem;
+    gap: 1.5rem;
   }
   
   .kpiIcon {
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 4rem;
+    height: 4rem;
   }
   
   .kpiValue {
-    font-size: 2rem;
+    font-size: 2.25rem;
   }
 }
 
@@ -190,18 +238,22 @@
 
 /* Button Improvements */
 .primaryButton {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  border: none;
-  color: white;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.25);
+  background: linear-gradient(135deg, #3b82f6, #6366f1) !important;
+  border: none !important;
+  color: white !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.25) !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+  margin-top: 1rem !important;
 }
 
 .primaryButton:hover {
-  background: linear-gradient(135deg, #2563eb, #4f46e5);
-  box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.35);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #2563eb, #4f46e5) !important;
+  box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.35) !important;
+  transform: translateY(-1px) !important;
 }
 
 .secondaryButton {
@@ -210,6 +262,9 @@
   color: #475569;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
 }
 
 .secondaryButton:hover {
@@ -219,17 +274,39 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
+.outlineButton {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+  backdrop-filter: blur(10px) !important;
+  margin-top: 1rem !important;
+}
+
+.outlineButton:hover {
+  background: rgba(248, 250, 252, 0.95) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  color: #334155 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+  transform: translateY(-1px) !important;
+}
+
 /* KPI Section Improvements */
 .kpiSection {
-  margin-bottom: 4rem;
-  padding: 0 0.5rem;
+  margin-bottom: 5rem;
+  margin-top: 3rem;
+  padding: 0 1rem;
 }
 
 .kpiGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 3rem;
+  margin-bottom: 4rem;
 }
 
 .kpiCard {
@@ -249,19 +326,19 @@
 }
 
 .kpiContent {
-  padding: 2rem;
+  padding: 2.5rem;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .kpiIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
-  border-radius: 12px;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 16px;
   background: linear-gradient(135deg, #f8fafc, #e2e8f0);
   color: #6366f1;
   flex-shrink: 0;
@@ -419,18 +496,62 @@
 }
 
 @media (max-width: 768px) {
+  .titleContainer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .titleIcon {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    box-shadow: 0 6px 16px -3px rgba(30, 64, 175, 0.2);
+  }
+  
+  .titleIcon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  
   .title {
     font-size: 1.875rem;
+  }
+  
+  .titleMain {
+    font-size: 2rem;
+  }
+  
+  .titleAccent {
+    font-size: 1.5rem;
+    margin-left: 0;
+  }
+  
+  .titleBadge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+    text-align: center;
   }
   
   .headerContent {
     flex-direction: column;
     align-items: stretch;
-    gap: 1.5rem;
+    gap: 2rem;
+  }
+  
+  .headerTitle {
+    margin-bottom: 2rem;
   }
   
   .headerActions {
     justify-content: flex-start;
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
   }
   
   .kpiGrid {
