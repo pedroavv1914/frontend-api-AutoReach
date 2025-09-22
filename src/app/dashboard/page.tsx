@@ -492,26 +492,26 @@ export default function Dashboard() {
                   Conteúdo com Melhor Performance
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className={styles.topContentContainer}>
                 <div className={styles.topContentList}>
                   {topContent.map((content, index) => (
                     <div key={index} className={styles.topContentItem}>
-                      <div className={styles.contentRank}>{index + 1}</div>
-                      <div className={styles.contentInfo}>
+                      <div className={styles.contentRankCircle}>{index + 1}</div>
+                      <div className={styles.contentDetails}>
                         <h4 className={styles.contentTitle}>{content.title}</h4>
-                        <div className={styles.contentStats}>
-                          <span className={styles.contentStat}>
+                        <div className={styles.contentMetrics}>
+                          <div className={styles.metricItem}>
                             <Eye className="h-4 w-4" />
-                            {formatNumber(content.views)}
-                          </span>
-                          <span className={styles.contentStat}>
+                            <span className={styles.metricValue}>{(content.views / 1000).toFixed(1)}K</span>
+                          </div>
+                          <div className={styles.metricItem}>
                             <Heart className="h-4 w-4" />
-                            {content.engagement}%
-                          </span>
-                          <span className={styles.contentStat}>
+                            <span className={styles.metricValue}>{content.engagement}%</span>
+                          </div>
+                          <div className={styles.metricItem}>
                             <Share2 className="h-4 w-4" />
-                            {content.shares}
-                          </span>
+                            <span className={styles.metricValue}>{content.shares}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -528,23 +528,28 @@ export default function Dashboard() {
                   Análise Competitiva
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className={styles.competitorList}>
+              <CardContent className={styles.competitorContainer}>
+                <div className={styles.competitorGrid}>
                   {competitorData.map((competitor, index) => (
-                    <div key={index} className={`${styles.competitorItem} ${competitor.name === 'Sua Marca' ? styles.yourBrand : ''}`}>
-                      <div className={styles.competitorName}>{competitor.name}</div>
-                      <div className={styles.competitorStats}>
-                        <div className={styles.competitorStat}>
-                          <span className={styles.statLabel}>Seguidores</span>
-                          <span className={styles.statValue}>{formatNumber(competitor.followers)}</span>
+                    <div key={index} className={`${styles.competitorCard} ${competitor.name === 'Sua Marca' ? styles.yourBrandCard : styles.competitorCardRegular}`}>
+                      <div className={styles.competitorHeader}>
+                        <h4 className={styles.competitorName}>{competitor.name}</h4>
+                        {competitor.name === 'Sua Marca' && (
+                          <div className={styles.brandBadge}>Você</div>
+                        )}
+                      </div>
+                      <div className={styles.competitorMetrics}>
+                        <div className={styles.metricGroup}>
+                          <span className={styles.metricLabel}>Seguidores</span>
+                          <span className={styles.metricValue}>{(competitor.followers / 1000).toFixed(1)}K</span>
                         </div>
-                        <div className={styles.competitorStat}>
-                          <span className={styles.statLabel}>Engajamento</span>
-                          <span className={styles.statValue}>{competitor.engagement}%</span>
+                        <div className={styles.metricGroup}>
+                          <span className={styles.metricLabel}>Engajamento</span>
+                          <span className={styles.metricValue}>{competitor.engagement}%</span>
                         </div>
-                        <div className={styles.competitorStat}>
-                          <span className={styles.statLabel}>Crescimento</span>
-                          <span className={`${styles.statValue} ${styles.growthValue}`}>
+                        <div className={styles.metricGroup}>
+                          <span className={styles.metricLabel}>Crescimento</span>
+                          <span className={`${styles.metricValue} ${styles.growthMetric}`}>
                             <ArrowUpRight className="h-4 w-4" />
                             {competitor.growth}%
                           </span>
