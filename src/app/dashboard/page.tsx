@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Calendar, CheckCircle2, Clock, TrendingUp, AlertTriangle, PlusCircle, 
-  Users, FileText, RefreshCw, BarChart3, Eye, Heart, MessageCircle, 
+import {
+  Calendar, CheckCircle2, Clock, TrendingUp, AlertTriangle, PlusCircle,
+  Users, FileText, RefreshCw, BarChart3, Eye, Heart, MessageCircle,
   Share2, Target, Zap, Activity, ArrowUpRight, ArrowDownRight,
   Filter, Download, Settings, Bell, Sparkles, X, Edit, Trash2, Plus
 } from "lucide-react";
@@ -173,7 +173,7 @@ export default function Dashboard() {
               <Download className="h-4 w-4 mr-2" />
               Exportar
             </Button>
-            <Button 
+            <Button
               className={`${styles.primaryButton} hover-scale micro-bounce`}
               onClick={() => setShowComposer(true)}
             >
@@ -186,21 +186,53 @@ export default function Dashboard() {
 
       <div className={`${styles.kpiSection} animate-slide-in-right animate-stagger-1`}>
         <div className={styles.kpiGrid}>
-          <div className={`${styles.kpiCard} card-entrance animate-stagger-1 hover-lift`}>
+          <div className={`${styles.kpiCard} ${styles.postsPublicadosCard} card-entrance animate-stagger-1 hover-lift`}>
             <div className={styles.kpiCardHeader}>
-              <h3 className={styles.kpiCardTitle}>Posts Publicados</h3>
-              <div className={styles.kpiIconContainer}>
-                <FileText className={styles.kpiIcon} />
+              <div className={styles.postsPublicadosHeaderContent}>
+                <div className={styles.postsPublicadosIconWrapper}>
+                  <FileText className={styles.postsPublicadosIcon} />
+                </div>
+                <div className={styles.postsPublicadosHeaderText}>
+                  <h3 className={styles.postsPublicadosTitle}>Posts Publicados</h3>
+                  <p className={styles.postsPublicadosSubtitle}>Total de conteúdos publicados</p>
+                </div>
+              </div>
+              <div className={styles.postsPublicadosActions}>
+                <button className={styles.postsPublicadosViewButton}>
+                  <Eye className="h-4 w-4" />
+                  Ver todos
+                </button>
               </div>
             </div>
             <div className={styles.kpiCardContent}>
-              <div className={styles.kpiValue}>78</div>
-              <div className={styles.kpiFooter}>
-                <div className={`${styles.kpiGrowth} ${styles.kpiGrowthPositive}`}>
-                  <ArrowUpRight className="h-4 w-4" />
-                  <span>+12%</span>
+              <div className={styles.postsPublicadosMetrics}>
+                <div className={styles.postsPublicadosMainValue}>
+                  <span className={styles.kpiValue}>78</span>
+                  <div className={styles.postsPublicadosGrowthBadge}>
+                    <ArrowUpRight className="h-3 w-3" />
+                    <span>+12%</span>
+                  </div>
                 </div>
-                <div className={styles.kpiDescription}>vs. mês anterior</div>
+                <div className={styles.postsPublicadosStats}>
+                  <div className={styles.postsPublicadosStat}>
+                    <span className={styles.postsPublicadosStatLabel}>Esta semana</span>
+                    <span className={styles.postsPublicadosStatValue}>12</span>
+                  </div>
+                  <div className={styles.postsPublicadosStatDivider}></div>
+                  <div className={styles.postsPublicadosStat}>
+                    <span className={styles.postsPublicadosStatLabel}>Pendentes</span>
+                    <span className={styles.postsPublicadosStatValue}>5</span>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.postsPublicadosProgress}>
+                <div className={styles.postsPublicadosProgressLabel}>
+                  <span>Meta mensal</span>
+                  <span>78/100</span>
+                </div>
+                <div className={styles.postsPublicadosProgressBar}>
+                  <div className={styles.postsPublicadosProgressFill} style={{ width: '78%' }}></div>
+                </div>
               </div>
             </div>
           </div>
@@ -281,7 +313,7 @@ export default function Dashboard() {
                     className={`${styles.metricButton} metric-entrance animate-stagger-1 hover-scale micro-bounce`}
                     onClick={() => setMetric(key as keyof typeof metricCfg)}
                   >
-                    <span style={{ 
+                    <span style={{
                       color: metric === key ? '#ffffff' : '#1f2937',
                       fontWeight: '600',
                       display: 'block'
@@ -298,23 +330,23 @@ export default function Dashboard() {
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={metricCfg[metric].color} stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor={metricCfg[metric].color} stopOpacity={0}/>
+                        <stop offset="5%" stopColor={metricCfg[metric].color} stopOpacity={0.3} />
+                        <stop offset="95%" stopColor={metricCfg[metric].color} stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                      dataKey="name" 
+                    <XAxis
+                      dataKey="name"
                       axisLine={false}
                       tickLine={false}
                       tick={{ fontSize: 12, fill: '#1f2937' }}
                     />
-                    <YAxis 
+                    <YAxis
                       axisLine={false}
                       tickLine={false}
                       tick={{ fontSize: 12, fill: '#1f2937' }}
                     />
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{
                         backgroundColor: 'white',
                         border: '1px solid #e2e8f0',
@@ -348,7 +380,7 @@ export default function Dashboard() {
                 <div className={styles.networkLegend}>
                   {networkData.map((network) => (
                     <div key={network.name} className={styles.networkLegendItem}>
-                      <div 
+                      <div
                         className={styles.networkLegendColor}
                         style={{ backgroundColor: network.color }}
                       ></div>
@@ -409,7 +441,7 @@ export default function Dashboard() {
               Analytics Detalhados
             </h2>
           </div>
-          
+
           <div className={styles.analyticsDetailGrid}>
             {/* Audiência */}
             <Card className={`${styles.audienceCard} card-entrance animate-stagger-1 hover-lift`}>
@@ -422,25 +454,25 @@ export default function Dashboard() {
               <CardContent>
                 <div className={styles.audienceChart}>
                   <ResponsiveContainer width="100%" height={240}>
-                    <BarChart 
-                      data={audienceData} 
+                    <BarChart
+                      data={audienceData}
                       margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                       barCategoryGap="20%"
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                      <XAxis 
-                        dataKey="age" 
+                      <XAxis
+                        dataKey="age"
                         tick={{ fontSize: 11, fill: '#64748b' }}
                         axisLine={false}
                         tickLine={false}
                       />
-                      <YAxis 
+                      <YAxis
                         tick={{ fontSize: 11, fill: '#64748b' }}
                         axisLine={false}
                         tickLine={false}
                         domain={[0, 40]}
                       />
-                      <Tooltip 
+                      <Tooltip
                         contentStyle={{
                           backgroundColor: 'white',
                           border: '1px solid rgba(148, 163, 184, 0.2)',
@@ -454,17 +486,17 @@ export default function Dashboard() {
                         ]}
                         labelFormatter={(label) => `Faixa etária: ${label}`}
                       />
-                      <Bar 
-                        dataKey="male" 
-                        stackId="demographics" 
-                        fill="#3b82f6" 
+                      <Bar
+                        dataKey="male"
+                        stackId="demographics"
+                        fill="#3b82f6"
                         radius={[0, 0, 0, 0]}
                         name="male"
                       />
-                      <Bar 
-                        dataKey="female" 
-                        stackId="demographics" 
-                        fill="#ec4899" 
+                      <Bar
+                        dataKey="female"
+                        stackId="demographics"
+                        fill="#ec4899"
                         radius={[4, 4, 0, 0]}
                         name="female"
                       />
@@ -571,7 +603,7 @@ export default function Dashboard() {
               Métricas de Performance
             </h2>
           </div>
-          
+
           <div className={styles.performanceGrid}>
             {/* KPIs de Performance */}
             <div className={styles.performanceKpis}>
@@ -592,17 +624,17 @@ export default function Dashboard() {
                       {metric.metric === 'CTR' ? '%' : ''}
                       {metric.metric === 'ROAS' ? 'x' : ''}
                     </div>
-                    
+
                     {/* Área de conteúdo adicional */}
                     <div className={styles.kpiContentArea}>
                       {/* Mini gráfico de tendência */}
                       <div className={styles.kpiMiniChart}>
                         <div className={styles.chartBars}>
                           {[...Array(7)].map((_, i) => (
-                            <div 
-                              key={i} 
+                            <div
+                              key={i}
                               className={styles.chartBar}
-                              style={{ 
+                              style={{
                                 height: `${Math.random() * 60 + 20}%`,
                                 animationDelay: `${i * 0.1}s`
                               }}
@@ -610,32 +642,32 @@ export default function Dashboard() {
                           ))}
                         </div>
                       </div>
-                      
+
                       {/* Informações adicionais */}
                       <div className={styles.kpiAdditionalInfo}>
                         <div className={styles.kpiMetaInfo}>
                           <span className={styles.kpiLabel}>Meta</span>
                           <span className={styles.kpiMetaValue}>
-                            {metric.metric === 'CTR' ? '4.5%' : 
-                             metric.metric === 'CPM' ? '$10.0' :
-                             metric.metric === 'CPC' ? '$0.75' : '5.0x'}
+                            {metric.metric === 'CTR' ? '4.5%' :
+                              metric.metric === 'CPM' ? '$10.0' :
+                                metric.metric === 'CPC' ? '$0.75' : '5.0x'}
                           </span>
                         </div>
                         <div className={styles.kpiProgress}>
                           <div className={styles.kpiProgressBar}>
-                            <div 
+                            <div
                               className={styles.kpiProgressFill}
-                              style={{ 
-                                width: `${metric.metric === 'CTR' ? 71 : 
-                                        metric.metric === 'CPM' ? 80 :
-                                        metric.metric === 'CPC' ? 88 : 84}%` 
+                              style={{
+                                width: `${metric.metric === 'CTR' ? 71 :
+                                  metric.metric === 'CPM' ? 80 :
+                                    metric.metric === 'CPC' ? 88 : 84}%`
                               }}
                             ></div>
                           </div>
                           <span className={styles.kpiProgressText}>
-                            {metric.metric === 'CTR' ? '71%' : 
-                             metric.metric === 'CPM' ? '80%' :
-                             metric.metric === 'CPC' ? '88%' : '84%'} da meta
+                            {metric.metric === 'CTR' ? '71%' :
+                              metric.metric === 'CPM' ? '80%' :
+                                metric.metric === 'CPC' ? '88%' : '84%'} da meta
                           </span>
                         </div>
                       </div>
@@ -663,7 +695,7 @@ export default function Dashboard() {
                       </div>
                       <div className={styles.funnelStageCenter}>
                         <div className={styles.funnelProgressBar}>
-                          <div 
+                          <div
                             className={styles.funnelProgressFill}
                             style={{ width: `${Math.max(stage.percentage, 0.5)}%` }}
                           ></div>
@@ -696,11 +728,11 @@ export default function Dashboard() {
               </div>
               <div className={styles.quickActionArrow}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
             </div>
-            
+
             <div className={`${styles.quickActionCard} card-entrance animate-stagger-2 hover-lift`}>
               <div className={styles.quickActionIcon}>
                 <Calendar className="h-6 w-6" />
@@ -711,11 +743,11 @@ export default function Dashboard() {
               </div>
               <div className={styles.quickActionArrow}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
             </div>
-            
+
             <div className={`${styles.quickActionCard} card-entrance animate-stagger-3 hover-lift`}>
               <div className={styles.quickActionIcon}>
                 <BarChart3 className="h-6 w-6" />
@@ -726,11 +758,11 @@ export default function Dashboard() {
               </div>
               <div className={styles.quickActionArrow}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
             </div>
-            
+
             <div className={`${styles.quickActionCard} card-entrance animate-stagger-4 hover-lift`}>
               <div className={styles.quickActionIcon}>
                 <Settings className="h-6 w-6" />
@@ -741,33 +773,11 @@ export default function Dashboard() {
               </div>
               <div className={styles.quickActionArrow}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-4 2xl:gap-8">
-        <div className="lg:col-span-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: metricCfg[metric].color }}></div>
-                  <span className="text-sm font-medium">{metricCfg[metric].label}</span>
-                  <div className="text-sm text-muted-foreground">
-                    Total: {formatNumber(chartData.reduce((acc, curr) => acc + curr[metric], 0))}
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" className={`${styles.outlineButton} ${styles.buttonSm}`}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar
-                </Button>
-              </div>
-            </CardHeader>
-          </Card>
         </div>
       </div>
 
@@ -783,9 +793,9 @@ export default function Dashboard() {
                 <p className={styles.recentPostsSubtitle}>Acompanhe suas últimas publicações</p>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className={`${styles.outlineButton} ${styles.buttonSm} ${styles.newPostButton}`}
               onClick={() => setShowComposer(true)}
             >
@@ -810,13 +820,12 @@ export default function Dashboard() {
                         <div className={styles.recentPostHeader}>
                           <h4 className={styles.recentPostTitle}>{post.content.substring(0, 50)}...</h4>
                           <div className={styles.recentPostMeta}>
-                            <Badge 
-                              className={`${
-                                post.status === 'published' ? styles.publishedBadge :
-                                post.status === 'pending' ? styles.pendingBadge :
-                                post.status === 'error' ? styles.errorBadge :
-                                styles.canceledBadge
-                              } ${styles.recentPostBadge}`}
+                            <Badge
+                              className={`${post.status === 'published' ? styles.publishedBadge :
+                                  post.status === 'pending' ? styles.pendingBadge :
+                                    post.status === 'error' ? styles.errorBadge :
+                                      styles.canceledBadge
+                                } ${styles.recentPostBadge}`}
                             >
                               {post.status === 'published' && <CheckCircle2 className="h-3 w-3 mr-1" />}
                               {post.status === 'pending' && post.scheduledAt && (
@@ -824,9 +833,9 @@ export default function Dashboard() {
                               )}
                               {post.status === 'error' && <AlertTriangle className="h-3 w-3 mr-1" />}
                               {post.status === 'published' ? 'Publicado' :
-                               post.status === 'pending' ? 'Agendado' :
-                               post.status === 'canceled' ? 'Cancelado' :
-                               'Erro'}
+                                post.status === 'pending' ? 'Agendado' :
+                                  post.status === 'canceled' ? 'Cancelado' :
+                                    'Erro'}
                             </Badge>
                           </div>
                         </div>
@@ -839,9 +848,9 @@ export default function Dashboard() {
                           <Edit className="h-4 w-4" />
                         </Button>
                         {post.status === 'pending' && post.scheduledAt && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className={`${styles.ghostButton} ${styles.buttonSm} ${styles.recentPostAction} ${styles.recentPostActionCancel}`}
                             onClick={() => handleCancelPost(post.id)}
                           >
@@ -849,9 +858,9 @@ export default function Dashboard() {
                           </Button>
                         )}
                         {post.status === 'error' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className={`${styles.ghostButton} ${styles.buttonSm} ${styles.recentPostAction} ${styles.recentPostActionRetry}`}
                             onClick={() => handleRetryPost(post.id)}
                           >
@@ -871,7 +880,7 @@ export default function Dashboard() {
                       <p className={styles.emptyStateDescription}>
                         Comece criando seu primeiro post para aparecer aqui
                       </p>
-                      <Button 
+                      <Button
                         className={styles.emptyStateButton}
                         onClick={() => setShowComposer(true)}
                       >
@@ -906,9 +915,9 @@ export default function Dashboard() {
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>Novo Post</h2>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className={`${styles.ghostButton} ${styles.buttonSm}`}
                 onClick={() => setShowComposer(false)}
               >
