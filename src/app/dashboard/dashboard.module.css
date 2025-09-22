@@ -2960,6 +2960,201 @@
   }
 }
 
+/* Posts Publicados Card - Specific Styles */
+.postsPublicadosCard {
+  background: linear-gradient(145deg, rgba(59, 130, 246, 0.02), rgba(147, 197, 253, 0.01));
+  border: 1px solid rgba(59, 130, 246, 0.08);
+}
+
+.postsPublicadosCard::before {
+  background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 50%, #2563eb 100%);
+}
+
+.postsPublicadosHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.postsPublicadosIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(29, 78, 216, 0.05));
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  transition: all 0.3s ease;
+}
+
+.postsPublicadosIcon {
+  width: 20px;
+  height: 20px;
+  color: #3b82f6;
+  transition: all 0.3s ease;
+}
+
+.postsPublicadosCard:hover .postsPublicadosIconWrapper {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  transform: scale(1.05);
+}
+
+.postsPublicadosCard:hover .postsPublicadosIcon {
+  color: white;
+}
+
+.postsPublicadosHeaderText {
+  flex: 1;
+}
+
+.postsPublicadosTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.postsPublicadosSubtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+}
+
+.postsPublicadosActions {
+  display: flex;
+  align-items: center;
+}
+
+.postsPublicadosViewButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 10px;
+  color: #3b82f6;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.postsPublicadosViewButton:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.postsPublicadosMetrics {
+  margin-bottom: 1.5rem;
+}
+
+.postsPublicadosMainValue {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.postsPublicadosGrowthBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.625rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+  color: #059669;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.postsPublicadosStats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.postsPublicadosStat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.postsPublicadosStatLabel {
+  font-size: 0.625rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.postsPublicadosStatValue {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.postsPublicadosStatDivider {
+  width: 1px;
+  height: 32px;
+  background: linear-gradient(to bottom, transparent, #e2e8f0, transparent);
+}
+
+.postsPublicadosProgress {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.postsPublicadosProgressLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.postsPublicadosProgressBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(226, 232, 240, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.postsPublicadosProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.postsPublicadosProgressFill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-20px); }
+  100% { transform: translateX(20px); }
+}
+
 /* Main Content */
 .mainContent {
   max-width: 1280px;
