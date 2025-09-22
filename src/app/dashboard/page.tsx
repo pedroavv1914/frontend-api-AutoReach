@@ -579,16 +579,66 @@ export default function Dashboard() {
                 <Card key={index} className={`${styles.performanceKpiCard} card-entrance animate-stagger-${index + 1} hover-lift`}>
                   <CardContent className={styles.performanceKpiContent}>
                     <div className={styles.kpiHeader}>
-                      <span className={styles.kpiMetricName}>{metric.metric}</span>
-                      <div className={`${styles.kpiTrend} ${metric.trend === 'up' ? styles.trendUp : styles.trendDown}`}>
-                        {metric.trend === 'up' ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                        {Math.abs(metric.change)}
+                      <div className={styles.kpiMetricInfo}>
+                        <span className={styles.kpiMetricName}>{metric.metric}</span>
+                        <div className={`${styles.kpiTrendBadge} ${metric.trend === 'up' ? styles.trendUpBadge : styles.trendDownBadge}`}>
+                          {metric.trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                          {Math.abs(metric.change)}
+                        </div>
                       </div>
                     </div>
-                    <div className={styles.kpiValue}>
+                    <div className={styles.kpiMainValue}>
                       {metric.metric === 'CPM' || metric.metric === 'CPC' ? '$' : ''}{metric.value}
                       {metric.metric === 'CTR' ? '%' : ''}
                       {metric.metric === 'ROAS' ? 'x' : ''}
+                    </div>
+                    
+                    {/* Área de conteúdo adicional */}
+                    <div className={styles.kpiContentArea}>
+                      {/* Mini gráfico de tendência */}
+                      <div className={styles.kpiMiniChart}>
+                        <div className={styles.chartBars}>
+                          {[...Array(7)].map((_, i) => (
+                            <div 
+                              key={i} 
+                              className={styles.chartBar}
+                              style={{ 
+                                height: `${Math.random() * 60 + 20}%`,
+                                animationDelay: `${i * 0.1}s`
+                              }}
+                            ></div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Informações adicionais */}
+                      <div className={styles.kpiAdditionalInfo}>
+                        <div className={styles.kpiMetaInfo}>
+                          <span className={styles.kpiLabel}>Meta</span>
+                          <span className={styles.kpiMetaValue}>
+                            {metric.metric === 'CTR' ? '4.5%' : 
+                             metric.metric === 'CPM' ? '$10.0' :
+                             metric.metric === 'CPC' ? '$0.75' : '5.0x'}
+                          </span>
+                        </div>
+                        <div className={styles.kpiProgress}>
+                          <div className={styles.kpiProgressBar}>
+                            <div 
+                              className={styles.kpiProgressFill}
+                              style={{ 
+                                width: `${metric.metric === 'CTR' ? 71 : 
+                                        metric.metric === 'CPM' ? 80 :
+                                        metric.metric === 'CPC' ? 88 : 84}%` 
+                              }}
+                            ></div>
+                          </div>
+                          <span className={styles.kpiProgressText}>
+                            {metric.metric === 'CTR' ? '71%' : 
+                             metric.metric === 'CPM' ? '80%' :
+                             metric.metric === 'CPC' ? '88%' : '84%'} da meta
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -603,21 +653,25 @@ export default function Dashboard() {
                   Funil de Conversão
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className={styles.funnelCardContent}>
                 <div className={styles.funnelContainer}>
                   {conversionFunnel.map((stage, index) => (
-                    <div key={index} className={styles.funnelStage}>
-                      <div className={styles.funnelStageInfo}>
-                        <span className={styles.funnelStageName}>{stage.stage}</span>
-                        <span className={styles.funnelStageValue}>{formatNumber(stage.value)}</span>
+                    <div key={index} className={styles.funnelStageRow}>
+                      <div className={styles.funnelStageLeft}>
+                        <div className={styles.funnelStageName}>{stage.stage}</div>
+                        <div className={styles.funnelStageValue}>{formatNumber(stage.value)}</div>
                       </div>
-                      <div className={styles.funnelBar}>
-                        <div 
-                          className={styles.funnelBarFill}
-                          style={{ width: `${stage.percentage * 10}%` }}
-                        ></div>
+                      <div className={styles.funnelStageCenter}>
+                        <div className={styles.funnelProgressBar}>
+                          <div 
+                            className={styles.funnelProgressFill}
+                            style={{ width: `${Math.max(stage.percentage, 0.5)}%` }}
+                          ></div>
+                        </div>
                       </div>
-                      <span className={styles.funnelStagePercentage}>{stage.percentage}%</span>
+                      <div className={styles.funnelStageRight}>
+                        <span className={styles.funnelStagePercentage}>{stage.percentage}%</span>
+                      </div>
                     </div>
                   ))}
                 </div>
