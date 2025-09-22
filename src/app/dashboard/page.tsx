@@ -683,24 +683,68 @@ export default function Dashboard() {
         <div className={`${styles.quickActionsSection} animate-fade-in animate-stagger-3`}>
           <div className={styles.quickActionsHeader}>
             <h3 className={styles.quickActionsTitle}>Ações Rápidas</h3>
+            <p className={styles.quickActionsSubtitle}>Acesse rapidamente as funcionalidades mais utilizadas</p>
           </div>
           <div className={styles.quickActionsGrid}>
-            <Button className={`${styles.actionCard} card-entrance animate-stagger-1 hover-lift micro-bounce`}>
-              <PlusCircle className="h-6 w-6 mb-2" />
-              <span>Criar Post</span>
-            </Button>
-            <Button className={`${styles.actionCard} card-entrance animate-stagger-2 hover-lift micro-bounce`}>
-              <Calendar className="h-6 w-6 mb-2" />
-              <span>Agendar Posts</span>
-            </Button>
-            <Button className={`${styles.actionCard} card-entrance animate-stagger-3 hover-lift micro-bounce`}>
-              <BarChart3 className="h-6 w-6 mb-2" />
-              <span>Ver Relatórios</span>
-            </Button>
-            <Button className={`${styles.actionCard} card-entrance animate-stagger-4 hover-lift micro-bounce`}>
-              <Settings className="h-6 w-6 mb-2" />
-              <span>Configurações</span>
-            </Button>
+            <div className={`${styles.quickActionCard} card-entrance animate-stagger-1 hover-lift`}>
+              <div className={styles.quickActionIcon}>
+                <PlusCircle className="h-6 w-6" />
+              </div>
+              <div className={styles.quickActionContent}>
+                <h4 className={styles.quickActionTitle}>Criar Post</h4>
+                <p className={styles.quickActionDescription}>Crie conteúdo envolvente para suas redes sociais</p>
+              </div>
+              <div className={styles.quickActionArrow}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            
+            <div className={`${styles.quickActionCard} card-entrance animate-stagger-2 hover-lift`}>
+              <div className={styles.quickActionIcon}>
+                <Calendar className="h-6 w-6" />
+              </div>
+              <div className={styles.quickActionContent}>
+                <h4 className={styles.quickActionTitle}>Agendar Posts</h4>
+                <p className={styles.quickActionDescription}>Programe suas publicações para o momento ideal</p>
+              </div>
+              <div className={styles.quickActionArrow}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            
+            <div className={`${styles.quickActionCard} card-entrance animate-stagger-3 hover-lift`}>
+              <div className={styles.quickActionIcon}>
+                <BarChart3 className="h-6 w-6" />
+              </div>
+              <div className={styles.quickActionContent}>
+                <h4 className={styles.quickActionTitle}>Ver Relatórios</h4>
+                <p className={styles.quickActionDescription}>Analise o desempenho das suas campanhas</p>
+              </div>
+              <div className={styles.quickActionArrow}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            
+            <div className={`${styles.quickActionCard} card-entrance animate-stagger-4 hover-lift`}>
+              <div className={styles.quickActionIcon}>
+                <Settings className="h-6 w-6" />
+              </div>
+              <div className={styles.quickActionContent}>
+                <h4 className={styles.quickActionTitle}>Configurações</h4>
+                <p className={styles.quickActionDescription}>Personalize sua experiência na plataforma</p>
+              </div>
+              <div className={styles.quickActionArrow}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -729,19 +773,26 @@ export default function Dashboard() {
 
       <Card className={styles.recentPostsCard}>
         <CardHeader className={styles.recentPostsHeader}>
-          <CardTitle className={styles.recentPostsTitle}>
-            <FileText className="h-5 w-5" />
-            Posts Recentes
-          </CardTitle>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className={`${styles.outlineButton} ${styles.buttonSm}`}
-            onClick={() => setShowComposer(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Post
-          </Button>
+          <div className={styles.recentPostsHeaderContent}>
+            <div className={styles.recentPostsHeaderLeft}>
+              <div className={styles.recentPostsIcon}>
+                <FileText className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className={styles.recentPostsTitle}>Posts Recentes</CardTitle>
+                <p className={styles.recentPostsSubtitle}>Acompanhe suas últimas publicações</p>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={`${styles.outlineButton} ${styles.buttonSm} ${styles.newPostButton}`}
+              onClick={() => setShowComposer(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Post
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -812,8 +863,22 @@ export default function Dashboard() {
                   ))
                 ) : (
                   <div className={styles.emptyRecentPosts}>
-                    <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p>Nenhum post encontrado</p>
+                    <div className={styles.emptyStateIcon}>
+                      <FileText className="h-12 w-12" />
+                    </div>
+                    <div className={styles.emptyStateContent}>
+                      <h4 className={styles.emptyStateTitle}>Nenhum post encontrado</h4>
+                      <p className={styles.emptyStateDescription}>
+                        Comece criando seu primeiro post para aparecer aqui
+                      </p>
+                      <Button 
+                        className={styles.emptyStateButton}
+                        onClick={() => setShowComposer(true)}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Criar primeiro post
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
