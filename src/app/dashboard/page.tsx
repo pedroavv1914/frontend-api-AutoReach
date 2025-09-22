@@ -62,11 +62,11 @@ export default function Dashboard() {
 
   // Dados expandidos para analytics
   const audienceData = [
-    { age: "18-24", value: 25, male: 12, female: 13 },
-    { age: "25-34", value: 35, male: 18, female: 17 },
-    { age: "35-44", value: 22, male: 11, female: 11 },
-    { age: "45-54", value: 12, male: 6, female: 6 },
-    { age: "55+", value: 6, male: 3, female: 3 },
+    { age: "18-24", total: 25, male: 12, female: 13 },
+    { age: "25-34", total: 35, male: 18, female: 17 },
+    { age: "35-44", total: 22, male: 11, female: 11 },
+    { age: "45-54", total: 12, male: 6, female: 6 },
+    { age: "55+", total: 6, male: 3, female: 3 },
   ];
 
   const performanceMetrics = [
@@ -369,17 +369,32 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className={styles.timesList}>
-                  {bestTimes.map((time) => (
-                    <div key={time.time} className={styles.timeSlot}>
-                      <div className={styles.timeInfo}>
-                        <span className={styles.timeValue}>{time.time}</span>
-                        <span className={styles.timeEngagement}>{time.engagement}% engajamento</span>
+                  {bestTimes.map((time) => {
+                    const getPerformanceClass = (engagement: number): string => {
+                      if (engagement >= 90) return 'highPerformance';
+                      if (engagement >= 80) return 'mediumPerformance';
+                      return 'lowPerformance';
+                    };
+
+                    const getPerformanceIndicator = (engagement: number): string => {
+                      if (engagement >= 90) return 'performanceHigh';
+                      if (engagement >= 80) return 'performanceMedium';
+                      return 'performanceLow';
+                    };
+
+                    return (
+                      <div key={time.time} className={`${styles.timeSlot} ${styles[getPerformanceClass(time.engagement)]}`}>
+                        <div className={styles.timeInfo}>
+                          <span className={styles.timeValue}>{time.time}</span>
+                          <span className={styles.timeEngagement}>{time.engagement}% engajamento</span>
+                        </div>
+                        <div className={styles.timeStats}>
+                          <div className={`${styles.performanceIndicator} ${styles[getPerformanceIndicator(time.engagement)]}`}></div>
+                          <span className={styles.timePosts}>{time.posts} posts</span>
+                        </div>
                       </div>
-                      <div className={styles.timeStats}>
-                        <span className={styles.timePosts}>{time.posts} posts</span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -401,30 +416,69 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className={styles.cardTitle}>
                   <Users className="h-5 w-5" />
-                  Demografia da Audiência
+                  Distribuição por Faixa Etária e Gênero
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className={styles.audienceChart}>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={audienceData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="age" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip />
-                      <Bar dataKey="male" stackId="a" fill="#3b82f6" />
-                      <Bar dataKey="female" stackId="a" fill="#ec4899" />
+                  <ResponsiveContainer width="100%" height={240}>
+                    <BarChart 
+                      data={audienceData} 
+                      margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                      barCategoryGap="20%"
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                      <XAxis 
+                        dataKey="age" 
+                        tick={{ fontSize: 11, fill: '#64748b' }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 11, fill: '#64748b' }}
+                        axisLine={false}
+                        tickLine={false}
+                        domain={[0, 40]}
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'white',
+                          border: '1px solid rgba(148, 163, 184, 0.2)',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                          fontSize: '12px'
+                        }}
+                        formatter={(value: number, name: string) => [
+                          `${value}`,
+                          name === 'male' ? 'Masculino' : 'Feminino'
+                        ]}
+                        labelFormatter={(label) => `Faixa etária: ${label}`}
+                      />
+                      <Bar 
+                        dataKey="male" 
+                        stackId="demographics" 
+                        fill="#3b82f6" 
+                        radius={[0, 0, 0, 0]}
+                        name="male"
+                      />
+                      <Bar 
+                        dataKey="female" 
+                        stackId="demographics" 
+                        fill="#ec4899" 
+                        radius={[4, 4, 0, 0]}
+                        name="female"
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
                 <div className={styles.audienceLegend}>
                   <div className={styles.legendItem}>
                     <div className={styles.legendColor} style={{ backgroundColor: '#3b82f6' }}></div>
-                    <span>Masculino</span>
+                    <span className={styles.legendLabel}>Masculino</span>
                   </div>
                   <div className={styles.legendItem}>
                     <div className={styles.legendColor} style={{ backgroundColor: '#ec4899' }}></div>
-                    <span>Feminino</span>
+                    <span className={styles.legendLabel}>Feminino</span>
                   </div>
                 </div>
               </CardContent>
